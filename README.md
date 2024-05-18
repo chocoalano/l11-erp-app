@@ -7,6 +7,16 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## About L11-ERP-APPS
+
+L11-ERP-APP is a web application framework with expressive and elegant syntax. We believe development should be a fun and creative experience to be truly satisfying. L11-ERP-APP takes the pain out of development by simplifying common tasks used in many web projects, and supports multiple dependencies such as:
+
+- [Filament]([https://laravel.com/docs/routing](https://filamentphp.com/docs)).
+- [Filament Shield](https://filamentphp.com/plugins/bezhansalleh-shield).
+- [Filament Kanban](https://filamentphp.com/plugins/mokhosh-kanban).
+
+L11-ERP-APP is accessible, powerful, and provides tools required for large, robust applications.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
