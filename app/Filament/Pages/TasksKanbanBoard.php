@@ -53,7 +53,6 @@ class TasksKanbanBoard extends KanbanBoard
             ]),
             Select::make('user_id')
                 ->label('Users Participan')
-                // ->relationship(name: 'team', titleAttribute: 'name')
                 ->options(\App\Models\User::all()->pluck('name', 'id'))
                 ->multiple()
                 ->preload()
