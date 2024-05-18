@@ -1,0 +1,15 @@
+@import '/vendor/filament/filament/resources/css/theme.css';
+
+@config 'tailwind.config.js';
+
+.fi-sidebar-nav {
+    @apply gap-x-4 bg-white px-4 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/5 md:px-6 lg:px-8;
+}
+:is(.dark .dark\:text-gray-500) {
+    --tw-text-opacity: 1;
+    color: rgb(254 254 254) !important;
+}
+
+.fi-layout {
+    @apply bg-gray-100 dark:bg-gray-950 !important;
+}
