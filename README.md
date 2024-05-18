@@ -11,7 +11,7 @@
 
 L11-ERP-APP is a web application framework with expressive and elegant syntax. We believe development should be a fun and creative experience to be truly satisfying. L11-ERP-APP takes the pain out of development by simplifying common tasks used in many web projects, and supports multiple dependencies such as:
 
-- [Filament]([https://laravel.com/docs/routing](https://filamentphp.com/docs)).
+- [Filament](https://filamentphp.com/docs).
 - [Filament Shield](https://filamentphp.com/plugins/bezhansalleh-shield).
 - [Filament Kanban](https://filamentphp.com/plugins/mokhosh-kanban).
 
