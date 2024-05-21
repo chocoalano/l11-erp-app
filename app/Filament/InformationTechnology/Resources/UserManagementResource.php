@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\InformationTechnology\Resources;
 
-use App\Events\SendNotificationEvent;
-use App\Filament\Resources\UserManagementResource\Pages;
-use App\Filament\Resources\UserManagementResource\RelationManagers;
+use App\Filament\InformationTechnology\Resources\UserManagementResource\Pages;
+use App\Filament\InformationTechnology\Resources\UserManagementResource\RelationManagers;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\User;
 use Filament\Forms;
@@ -333,20 +332,6 @@ class UserManagementResource extends Resource
                     ->send();
                 }
             }),
-            Tables\Actions\Action::make('Test Notif')
-            ->icon('fas-sync')->form([
-                Forms\Components\Select::make('user_id')->options(User::all()->pluck('name', 'id'))->label('Chose User')->preload(),
-            ])
-            ->action(function (array $data): void {
-                $recipient = auth()->user();
-                Notification::make()
-                ->title('Saved successfully '. $recipient->name)
-                ->sendToDatabase($recipient)
-                ->success()
-                ->send();
-
-                event(new SendNotificationEvent($recipient->name));
-            }),
             Tables\Actions\Action::make('Export To Excel')
             ->icon('fas-file-export')
             ->url(route('download.user.format.excel'))
@@ -358,7 +343,6 @@ class UserManagementResource extends Resource
             Tables\Columns\TextColumn::make('nik')->searchable(),
             Tables\Columns\TextColumn::make('name')->searchable(),
             Tables\Columns\TextColumn::make('email')->searchable(),
-            Tables\Columns\TextColumn::make('email_verified_at')->dateTime()->sortable(),
             Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             Tables\Columns\TextColumn::make('updated_at')->dateTime()->sortable(),
         ])

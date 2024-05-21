@@ -16,6 +16,51 @@ L11-ERP-APP is a web application framework with expressive and elegant syntax. W
 - [Filament Kanban](https://filamentphp.com/plugins/mokhosh-kanban).
 
 L11-ERP-APP is accessible, powerful, and provides tools required for large, robust applications.
+Application started
+1. Open Terminal
+```bash
+git clone https://github.com/chocoalano/l11-erp-app.git
+```
+2. Open Folder
+```bash
+cd l11-erp-app
+```
+3. Run Composer Install
+```bash
+composer install
+``` 
+4. Run command to copy .env
+```bash
+cp .env.example .env
+```
+5. Run command to generate key laravel
+```bash
+php artisan key:generate
+```
+6. Run command to generate migration
+```bash
+php artisan migrate
+```
+7. Install npm dependency
+```bash
+npm install
+```
+8. Run Laravel
+```bash
+php artisan serve
+```
+9. Run Reverb Socket Server
+```bash
+php artisan reverb:start
+```
+10. Run Node Socket Server
+```bash
+npm run dev
+```
+11. Run Queue Server
+```bash
+php artisan queue:work
+```
 
 ## About Laravel
 

@@ -35,14 +35,12 @@ class AppServiceProvider extends ServiceProvider
             ->modalHeading('Available Panels')
             ->icons([
                 'hr' => 'fas-people-group',
-                'fa' => 'fas-coins',
-                'ma' => 'fas-feather',
+                'it' => 'fas-coins',
             ])
             ->iconSize(16)
             ->labels([
-                'hr' => 'HRIS',
-                'fa' => 'Finance & Accounting',
-                'ma' => 'Management Assets',
+                'hr' => 'HRIS Tools',
+                'it' => 'IT Tools',
             ])
             ->simple();
         });

@@ -2,15 +2,12 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Resources\HrResource\Widgets\StatsUserOverview;
-use App\Filament\Resources\HrResource\Widgets\UsersChart;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -19,17 +16,17 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Navigation\NavigationItem;
 use Filament\Navigation\MenuItem;
-use App\Filament\Pages\Profile;
+use App\Filament\InformationTechnology\Pages\Profile;
 
-class HumanResourcesPanelProvider extends PanelProvider
+class InformationTechnologyPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
-            ->id('hr')
-            ->path('hr')
+            ->id('it')
+            ->path('it')
             ->brandName('E-SAS')
             ->brandLogo(asset('images/logo.svg'))
             ->login()
@@ -38,24 +35,45 @@ class HumanResourcesPanelProvider extends PanelProvider
             ->spa()
             ->sidebarCollapsibleOnDesktop()
             ->viteTheme('resources/css/filament/humanResources/theme.css')
-            ->topNavigation()
             ->databaseNotifications()
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->userMenuItems([
                 MenuItem::make()
                     ->label('Profile')
                     ->url(fn (): string => Profile::getUrl())
                     ->icon('fas-user')
             ])
+            ->navigationItems([
+                NavigationItem::make('Tasks')
+                    ->url('hr/tasks-kanban-board')
+                    ->icon('heroicon-o-presentation-chart-line')
+            ])
             ->databaseNotifications()
+            ->plugins([
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
+                ->gridColumns([
+                    'default' => 2,
+                    'sm' => 1
+                ])
+                ->sectionColumnSpan(1)
+                ->checkboxListColumns([
+                    'default' => 1,
+                    'sm' => 2,
+                    'lg' => 3,
+                ])
+                ->resourceCheckboxListColumns([
+                    'default' => 1,
+                    'sm' => 2,
+                ]),
+            ])
+            ->discoverResources(in: app_path('Filament/InformationTechnology/Resources'), for: 'App\\Filament\\InformationTechnology\\Resources')
+            ->discoverPages(in: app_path('Filament/InformationTechnology/Pages'), for: 'App\\Filament\\InformationTechnology\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->discoverWidgets(in: app_path('Filament/InformationTechnology/Widgets'), for: 'App\\Filament\\InformationTechnology\\Widgets')
             ->widgets([
-                StatsUserOverview::class,
-                UsersChart::class,
+                Widgets\AccountWidget::class,
+                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
