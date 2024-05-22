@@ -3,25 +3,33 @@
 namespace App\Filament\Pages;
 
 use App\Enums\TaskStatus;
+use App\Events\SendNotificationEvent;
 use App\Models\Task;
+use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
 use Mokhosh\FilamentKanban\Pages\KanbanBoard;
 use Illuminate\Support\Collection;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 
 class TasksKanbanBoard extends KanbanBoard
 {
+    use HasPageShield;
     protected static ?string $title = 'Tasks';
 
-    protected static string $headerView = 'tasks-kanban.kanban-header';
-
-    protected static string $recordView = 'tasks-kanban.kanban-record';
-
-    protected static string $statusView = 'tasks-kanban.kanban-status';
+    protected static string $view = 'filament-kanban::kanban-board';
+ 
+    protected static string $headerView = 'filament-kanban::kanban-header';
+    
+    protected static string $recordView = 'filament-kanban::kanban-record';
+    
+    protected static string $statusView = 'filament-kanban::kanban-status';
+    
+    protected static string $scriptsView = 'filament-kanban::kanban-scripts';
 
     protected static string $model = Task::class;
 
@@ -51,9 +59,9 @@ class TasksKanbanBoard extends KanbanBoard
                 'High' => 'High',
                 'Medium' => 'Medium',
             ]),
-            Select::make('user_id')
+            Select::make('participation')
                 ->label('Users Participan')
-                ->options(\App\Models\User::all()->pluck('name', 'id'))
+                ->options(User::all()->pluck('name', 'id'))
                 ->multiple()
                 ->preload()
                 ->searchable()
@@ -71,7 +79,18 @@ class TasksKanbanBoard extends KanbanBoard
             'progress'=>$data['progress'],
             'status'=>$data['status'],
         ]);
-        $task->team()->sync($data['user_id']);
+        $task->team()->sync($data['participation']);
+        foreach ($data['participation'] as $key) {
+            $recipient = User::find($key);
+            Notification::make()
+                ->title('Updated task successfully '. $task->title)
+                ->sendToDatabase($recipient)
+                ->broadcast($recipient)
+                ->success()
+                ->send();
+    
+        }
+        event(new SendNotificationEvent($task->title));
     }
 
     protected function getHeaderActions(): array
@@ -90,9 +109,9 @@ class TasksKanbanBoard extends KanbanBoard
                         'High' => 'High',
                         'Medium' => 'Medium',
                     ]),
-                    Select::make('user_id')
+                    Select::make('participation')
                     ->label('Users Participan')
-                    ->options(\App\Models\User::all()
+                    ->options(User::all()
                     ->pluck('name', 'id'))
                     ->multiple()
                     ->preload()
@@ -109,8 +128,17 @@ class TasksKanbanBoard extends KanbanBoard
                     $u->user_id=auth()->id();
                     $u->save();
                     $u->team()->sync($data['user_id']);
-
-                    $data['user_id']=auth()->id();
+                    foreach ($data['participation'] as $key) {
+                        $recipient = User::find($key);
+                        Notification::make()
+                            ->title('Create new task successfully '. $u->title)
+                            ->sendToDatabase($recipient)
+                            ->broadcast($recipient)
+                            ->success()
+                            ->send();
+                
+                    }
+                    event(new SendNotificationEvent($u->title));
                     return $data;
                 })
         ];

@@ -34,12 +34,18 @@ class EditUserManagement extends EditRecord
             'work_experience',
             'employe',
             'salary',
+            'rolefind',
             'tax_config'
             )->find($data['id']);
+            $roles=[];
+            foreach($u->rolefind as $k){
+                array_push($roles, $k['id']);
+            }
         $showdata=[
             "name" => $u->name,
             "nik" => $u->nik,
             "email" => $u->email,
+            "roles" => $roles,
             "email_verified_at" => $u->email_verified_at,
             "phone" => $u->phone,
             "placebirth" => $u->placebirth,
@@ -85,6 +91,7 @@ class EditUserManagement extends EditRecord
             $showdata["job_level_id"] = $u->employe->job_level_id;
             $showdata["approval_line"] = $u->employe->approval_line;
             $showdata["approval_manager"] = $u->employe->approval_manager;
+            $showdata["company_id"] = $u->employe->company_id;
             $showdata["branch_id"] = $u->employe->branch_id;
             $showdata["status"] = $u->employe->status;
             $showdata["join_date"] = $u->employe->join_date;
@@ -144,6 +151,12 @@ class EditUserManagement extends EditRecord
             $u->religion=$data['religion'];
             $u->image=$data['image'];
             $u->save();
+
+            DB::table('model_has_roles')->where('model_id',$u->id)->delete();
+            foreach($data['roles'] as $k){
+                $r = DB::table('roles')->where('id', $k)->first();
+                $u->assignRole($r->name);
+            }
 
             $u->address()->updateOrCreate(
                 ['user_id'=>$u->id],
@@ -265,7 +278,6 @@ class EditUserManagement extends EditRecord
                     'beginning_netto'=>$data['beginning_netto'],
                     'pph21_paid'=>$data['pph21_paid'],
                 ]);
-
             DB::commit();
         } catch (Exception $e) {
             DB::rollback();

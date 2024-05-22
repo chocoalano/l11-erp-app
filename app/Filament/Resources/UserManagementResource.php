@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Events\SendNotificationEvent;
 use App\Filament\Resources\UserManagementResource\Pages;
 use App\Filament\Resources\UserManagementResource\RelationManagers;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -15,8 +14,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Notifications\Notification;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 
-class UserManagementResource extends Resource
+class UserManagementResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = User::class;
 
@@ -67,7 +67,12 @@ class UserManagementResource extends Resource
                     Forms\Components\TextInput::make('name')->maxLength(100)->required(),
                     Forms\Components\TextInput::make('nik')->maxLength(10)->numeric()->required(),
                     Forms\Components\TextInput::make('email')->email()->maxLength(100)->required(),
-                    Forms\Components\Select::make('roles')->relationship('roles', 'name')->multiple()->preload()->searchable()->required(),
+                    Forms\Components\Select::make('roles')
+                    ->options(\Spatie\Permission\Models\Role::all()->pluck('name', 'id'))
+                    ->multiple()
+                    ->preload()
+                    ->searchable()
+                    ->required(),
                     Forms\Components\DateTimePicker::make('email_verified_at')->required(),
                     Forms\Components\TextInput::make('phone')->numeric()->minLength(11)->maxLength(13)->required(),
                     Forms\Components\TextInput::make('placebirth')->maxLength(100)->required(),
@@ -114,37 +119,37 @@ class UserManagementResource extends Resource
                     Forms\Components\DatePicker::make('jaminan_pensiun_date'),
                 ])->columns(['sm' => 1, 'xl' => 3, '2xl' => 3]),
                 Forms\Components\Section::make('Personal Employment Used')->schema([
-                    Forms\Components\Select::make('organization_id')->options(\App\Models\SystemSetup\Organization::all()->pluck('name', 'id'))->label('Organization')->preload()->required()->createOptionForm([
+                    Forms\Components\Select::make('organization_id')->options(\App\Models\Organization::all()->pluck('name', 'id'))->label('Organization')->preload()->required()->createOptionForm([
                         Forms\Components\Section::make()->schema([
                             Forms\Components\TextInput::make('name')->maxLength(100)->required(),
                             Forms\Components\TextInput::make('description')->maxLength(100)->required(),
                         ])->columns(['sm' => 1,'xl' => 2,'2xl' => 2])
                     ])->createOptionUsing(function (array $data): int {
-                        $create = new \App\Models\SystemSetup\Organization();
+                        $create = new \App\Models\Organization();
                         $create->name=$data['name'];
                         $create->description=$data['description'];
                         $create->save();
                         return $create->id;
                     }),
-                    Forms\Components\Select::make('job_position_id')->options(\App\Models\SystemSetup\JobPosition::all()->pluck('name', 'id'))->label('Job Position')->preload()->required()->createOptionForm([
+                    Forms\Components\Select::make('job_position_id')->options(\App\Models\JobPosition::all()->pluck('name', 'id'))->label('Job Position')->preload()->required()->createOptionForm([
                         Forms\Components\Section::make()->schema([
                             Forms\Components\TextInput::make('name')->maxLength(100)->required(),
                             Forms\Components\Textarea::make('description')->required(),
                         ])->columns(['sm' => 1,'xl' => 1,'2xl' => 1])
                     ])->createOptionUsing(function (array $data): int {
-                        $create = new \App\Models\SystemSetup\JobPosition();
+                        $create = new \App\Models\JobPosition();
                         $create->name=$data['name'];
                         $create->description=$data['description'];
                         $create->save();
                         return $create->id;
                     }),
-                    Forms\Components\Select::make('job_level_id')->options(\App\Models\SystemSetup\JobLevel::all()->pluck('name', 'id'))->label('Level')->preload()->required()->createOptionForm([
+                    Forms\Components\Select::make('job_level_id')->options(\App\Models\JobLevel::all()->pluck('name', 'id'))->label('Level')->preload()->required()->createOptionForm([
                         Forms\Components\Section::make()->schema([
                             Forms\Components\TextInput::make('name')->maxLength(100)->required(),
                             Forms\Components\Textarea::make('description')->required(),
                         ])->columns(['sm' => 1,'xl' => 1,'2xl' => 1])
                     ])->createOptionUsing(function (array $data): int {
-                        $create = new \App\Models\SystemSetup\JobLevel();
+                        $create = new \App\Models\JobLevel();
                         $create->name=$data['name'];
                         $create->description=$data['description'];
                         $create->save();
@@ -152,7 +157,7 @@ class UserManagementResource extends Resource
                     }),
                     Forms\Components\Select::make('approval_line')->options(User::all()->pluck('name', 'id'))->preload()->required(),
                     Forms\Components\Select::make('approval_manager')->options(User::all()->pluck('name', 'id'))->preload()->required(),
-                    Forms\Components\Select::make('company_id')->options(\App\Models\SystemSetup\Company::all()->pluck('name', 'id'))->label('Company')->preload()->required()->createOptionForm([
+                    Forms\Components\Select::make('company_id')->options(\App\Models\Company::all()->pluck('name', 'id'))->label('Company')->preload()->required()->createOptionForm([
                         Forms\Components\Section::make([
                             Forms\Components\TextInput::make('name')->minLength(1)->maxLength(100)->required(),
                             Forms\Components\TextInput::make('latitude')->numeric()->required(),
@@ -160,7 +165,7 @@ class UserManagementResource extends Resource
                             Forms\Components\Textarea::make('full_address')->columnSpanFull()->required(),
                         ])->columns(['sm' => 1,'xl' => 3,'2xl' => 3,]),
                     ])->createOptionUsing(function (array $data): int {
-                        $create = new \App\Models\SystemSetup\Company();
+                        $create = new \App\Models\Company();
                         $create->name=$data['name'];
                         $create->latitude=$data['latitude'];
                         $create->longitude=$data['longitude'];
@@ -168,7 +173,7 @@ class UserManagementResource extends Resource
                         $create->save();
                         return $create->id;
                     }),
-                    Forms\Components\Select::make('branch_id')->options(\App\Models\SystemSetup\Branch::all()->pluck('name', 'id'))->label('Branch')->preload()->required()->createOptionForm([
+                    Forms\Components\Select::make('branch_id')->options(\App\Models\Branch::all()->pluck('name', 'id'))->label('Branch')->preload()->required()->createOptionForm([
                         Forms\Components\Section::make([
                             Forms\Components\TextInput::make('name')->minLength(1)->maxLength(100)->required(),
                             Forms\Components\TextInput::make('latitude')->numeric()->required(),
@@ -176,7 +181,7 @@ class UserManagementResource extends Resource
                             Forms\Components\Textarea::make('full_address')->columnSpanFull()->required(),
                         ])->columns(['sm' => 1,'xl' => 3,'2xl' => 3,]),
                     ])->createOptionUsing(function (array $data): int {
-                        $create = new \App\Models\SystemSetup\Branch();
+                        $create = new \App\Models\Branch();
                         $create->name=$data['name'];
                         $create->latitude=$data['latitude'];
                         $create->longitude=$data['longitude'];
@@ -211,12 +216,12 @@ class UserManagementResource extends Resource
             Forms\Components\Split::make([
                 Forms\Components\Section::make('Personal Formal Education Used')->schema([
                     Forms\Components\Repeater::make('formal_education')->schema([
-                        Forms\Components\Select::make('grade_id')->options(\App\Models\SystemSetup\GradeEducation::all()->pluck('name', 'id'))->label('Grade')->preload()->createOptionForm([
+                        Forms\Components\Select::make('grade_id')->options(\App\Models\GradeEducation::all()->pluck('name', 'id'))->label('Grade')->preload()->createOptionForm([
                             Forms\Components\Section::make()->schema([
                                 Forms\Components\TextInput::make('name')->maxLength(100)->required()
                             ])->columns(['sm' => 1,'xl' => 1,'2xl' => 1])
                         ])->createOptionUsing(function (array $data): int {
-                            $create = new \App\Models\SystemSetup\GradeEducation();
+                            $create = new \App\Models\GradeEducation();
                             $create->name=$data['name'];
                             $create->save();
                             return $create->id;
@@ -264,8 +269,8 @@ class UserManagementResource extends Resource
                     Forms\Components\TextInput::make('npwp_15_digit_old')->numeric(),
                     Forms\Components\TextInput::make('npwp_16_digit_new')->numeric(),
                     Forms\Components\Select::make('ptkp_status')->options(['TK0'=>'TK0','TK1'=>'TK1','TK2'=>'TK2','TK3'=>'TK3','K0'=>'K0','K1'=>'K1','K2'=>'K2','K3'=>'K3','K/I/0'=>'K/I/0','K/I/1'=>'K/I/1','K/I/2'=>'K/I/2','K/I/3'=>'K/I/3']),
-                    Forms\Components\Select::make('tax_method')->options(['gross']),
-                    Forms\Components\Select::make('tax_salary')->options(['taxable']),
+                    Forms\Components\Select::make('tax_method')->options(['gross' => 'Gross']),
+                    Forms\Components\Select::make('tax_salary')->options(['taxable' => 'Taxable']),
                     Forms\Components\Select::make('emp_tax_status')->options(['permanent'=>'permanent', 'contract'=>'contract', 'last-daily'=>'last-daily']),
                     Forms\Components\TextInput::make('beginning_netto')->numeric(),
                     Forms\Components\TextInput::make('pph21_paid')->numeric()
@@ -287,10 +292,13 @@ class UserManagementResource extends Resource
     {
         return $table
         ->headerActions([
+            // START FOR BUTTON DOWNLOAD FORMATED IMPORT
             Tables\Actions\Action::make('Download Excel For Import Data')
             ->icon('fas-file-excel')
             ->url(route('download.user.format.excel'))
             ->openUrlInNewTab(),
+            // END FOR BUTTON DOWNLOAD FORMATED IMPORT
+            // START FOR BUTTON IMPORT
             Tables\Actions\Action::make('Import From Excel')
             ->icon('fas-file-import')->form([
                 Forms\Components\FileUpload::make('fileImport')
@@ -333,25 +341,13 @@ class UserManagementResource extends Resource
                     ->send();
                 }
             }),
-            Tables\Actions\Action::make('Test Notif')
-            ->icon('fas-sync')->form([
-                Forms\Components\Select::make('user_id')->options(User::all()->pluck('name', 'id'))->label('Chose User')->preload(),
-            ])
-            ->action(function (array $data): void {
-                $recipient = auth()->user();
-                Notification::make()
-                ->title('Saved successfully '. $recipient->name)
-                ->sendToDatabase($recipient)
-                ->success()
-                ->send();
-
-                event(new SendNotificationEvent($recipient->name));
-            }),
+            // END FOR BUTTON IMPORT
+            // START FOR BUTTON EXPORT DATA TO .XLSX
             Tables\Actions\Action::make('Export To Excel')
             ->icon('fas-file-export')
             ->url(route('download.user.format.excel'))
             ->openUrlInNewTab(),
-            Tables\Actions\CreateAction::make()
+            // END FOR BUTTON EXPORT DATA TO .XLSX
         ])
         ->columns([
             Tables\Columns\ImageColumn::make('image')->circular(),

@@ -5,9 +5,11 @@ namespace App\Filament\Resources\HrResource\Widgets;
 use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 
 class UsersChart extends ChartWidget
 {
+    use HasWidgetShield;
     protected int | string | array $columnSpan = 'full';
     protected static ?string $heading = 'Chart Users Sign In';
 
@@ -33,6 +35,6 @@ class UsersChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'bar';
+        return 'line';
     }
 }

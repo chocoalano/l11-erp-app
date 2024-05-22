@@ -18,11 +18,15 @@ class Tasks extends KanbanBoard
     protected static ?string $title = 'Tasks';
     protected static ?string $navigationIcon = 'heroicon-o-presentation-chart-line';
 
-    protected static string $headerView = 'tasks-kanban.kanban-header';
-
-    protected static string $recordView = 'tasks-kanban.kanban-record';
-
-    protected static string $statusView = 'tasks-kanban.kanban-status';
+    protected static string $view = 'filament-kanban::kanban-board';
+ 
+    protected static string $headerView = 'filament-kanban::kanban-header';
+    
+    protected static string $recordView = 'filament-kanban::kanban-record';
+    
+    protected static string $statusView = 'filament-kanban::kanban-status';
+    
+    protected static string $scriptsView = 'filament-kanban::kanban-scripts';
 
     protected static string $model = Task::class;
 

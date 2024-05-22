@@ -39,7 +39,6 @@ class HumanResourcesPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->viteTheme('resources/css/filament/humanResources/theme.css')
             ->topNavigation()
-            ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->userMenuItems([
@@ -49,8 +48,26 @@ class HumanResourcesPanelProvider extends PanelProvider
                     ->icon('fas-user')
             ])
             ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->pages([
                 Pages\Dashboard::class,
+            ])
+            ->plugins([
+                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
+                ->gridColumns([
+                    'default' => 2,
+                    'sm' => 1
+                ])
+                ->sectionColumnSpan(1)
+                ->checkboxListColumns([
+                    'default' => 1,
+                    'sm' => 2,
+                    'lg' => 3,
+                ])
+                ->resourceCheckboxListColumns([
+                    'default' => 1,
+                    'sm' => 2,
+                ]),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

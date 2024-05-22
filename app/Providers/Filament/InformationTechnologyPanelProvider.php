@@ -35,7 +35,6 @@ class InformationTechnologyPanelProvider extends PanelProvider
             ->spa()
             ->sidebarCollapsibleOnDesktop()
             ->viteTheme('resources/css/filament/humanResources/theme.css')
-            ->databaseNotifications()
             ->userMenuItems([
                 MenuItem::make()
                     ->label('Profile')
@@ -48,6 +47,7 @@ class InformationTechnologyPanelProvider extends PanelProvider
                     ->icon('heroicon-o-presentation-chart-line')
             ])
             ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
                 ->gridColumns([

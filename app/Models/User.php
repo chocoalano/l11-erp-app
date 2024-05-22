@@ -4,7 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\SystemSetup\Organization;
 use App\Models\UserRelated\UAddres;
 use App\Models\UserRelated\UBank;
 use App\Models\UserRelated\UBpjs;
@@ -21,9 +20,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use Spatie\Permission\Models\Role;
 
 class User extends Authenticatable
 {
@@ -92,5 +91,9 @@ class User extends Authenticatable
     public function tax_config(): HasOne
     {
         return $this->hasOne(UTaxConfig::class, 'user_id', 'id');
+    }
+
+    public function rolefind(){
+        return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id');
     }
 }

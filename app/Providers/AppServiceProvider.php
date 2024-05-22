@@ -32,17 +32,16 @@ class AppServiceProvider extends ServiceProvider
         ]);
         PanelSwitch::configureUsing(function (PanelSwitch $panelSwitch) {
             $panelSwitch
-            ->modalHeading('Available Panels')
+            ->modalHeading('Available Panels System Integrated')
             ->icons([
-                'hr' => 'fas-people-group',
-                'it' => 'fas-coins',
-            ])
-            ->iconSize(16)
+                'hr' => asset('images/svg/hrd.svg'),
+                'it' => asset('images/svg/it.svg'),
+            ], $asImage = true)
+            ->iconSize(32)
             ->labels([
-                'hr' => 'HRIS Tools',
-                'it' => 'IT Tools',
-            ])
-            ->simple();
+                'hr' => 'Human Resources Information System (HRIS)',
+                'it' => 'Information Technology System (HTS)',
+            ]);
         });
     }
 }

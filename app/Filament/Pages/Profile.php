@@ -8,9 +8,11 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 
 class Profile extends Page
 {
+    use HasPageShield;
     protected static string $view = 'filament.pages.profile';
     protected static bool $shouldRegisterNavigation = false;
     public ?array $data = [];
@@ -260,7 +262,7 @@ class Profile extends Page
                 \Filament\Forms\Components\Section::make('Personal Information Data')->schema([
                     \Filament\Forms\Components\TextInput::make('name')->maxLength(100)->required(),
                     \Filament\Forms\Components\TextInput::make('email')->email()->maxLength(100)->required(),
-                    \Filament\Forms\Components\Select::make('roles')->relationship('roles', 'name')->multiple()->preload()->searchable()->required(),
+                    \Filament\Forms\Components\Select::make('roles')->relationship('roles', 'name')->multiple()->preload()->searchable()->required()->disabled(),
                     \Filament\Forms\Components\DateTimePicker::make('email_verified_at')->required(),
                     \Filament\Forms\Components\TextInput::make('phone')->numeric()->minLength(11)->maxLength(13)->required(),
                     \Filament\Forms\Components\TextInput::make('placebirth')->maxLength(100)->required(),
@@ -295,27 +297,27 @@ class Profile extends Page
             ])->from('md')->columnSpan('full'),
             \Filament\Forms\Components\Split::make([
                 \Filament\Forms\Components\Section::make('Personal BPJS Used')->schema([
-                    \Filament\Forms\Components\TextInput::make('bpjs_ketenagakerjaan')->maxLength(100)->required(),
-                    \Filament\Forms\Components\TextInput::make('npp_bpjs_ketenagakerjaan')->label('Label NPP')->maxLength(10)->required(),
-                    \Filament\Forms\Components\DatePicker::make('bpjs_ketenagakerjaan_date')->label('BPJS TK Date')->required(),
-                    \Filament\Forms\Components\TextInput::make('bpjs_kesehatan')->maxLength(100)->required(),
-                    \Filament\Forms\Components\TextInput::make('bpjs_kesehatan_family')->maxLength(100)->required(),
-                    \Filament\Forms\Components\DatePicker::make('bpjs_kesehatan_date')->required(),
-                    \Filament\Forms\Components\TextInput::make('bpjs_kesehatan_cost')->numeric()->required(),
-                    \Filament\Forms\Components\DatePicker::make('jht_cost')->required(),
-                    \Filament\Forms\Components\TextInput::make('jaminan_pensiun_cost')->maxLength(100)->required(),
-                    \Filament\Forms\Components\DatePicker::make('jaminan_pensiun_date')->required(),
+                    \Filament\Forms\Components\TextInput::make('bpjs_ketenagakerjaan')->maxLength(100)->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('npp_bpjs_ketenagakerjaan')->label('Label NPP')->maxLength(10)->required()->disabled(),
+                    \Filament\Forms\Components\DatePicker::make('bpjs_ketenagakerjaan_date')->label('BPJS TK Date')->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('bpjs_kesehatan')->maxLength(100)->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('bpjs_kesehatan_family')->maxLength(100)->required()->disabled(),
+                    \Filament\Forms\Components\DatePicker::make('bpjs_kesehatan_date')->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('bpjs_kesehatan_cost')->numeric()->required()->disabled(),
+                    \Filament\Forms\Components\DatePicker::make('jht_cost')->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('jaminan_pensiun_cost')->maxLength(100)->required()->disabled(),
+                    \Filament\Forms\Components\DatePicker::make('jaminan_pensiun_date')->required()->disabled(),
                 ])->columns(['sm' => 1, 'xl' => 3, '2xl' => 3]),
                 \Filament\Forms\Components\Section::make('Personal Employment Used')->schema([
-                    \Filament\Forms\Components\Select::make('organization_id')->options(\App\Models\SystemSetup\Organization::all()->pluck('name', 'id'))->label('Organization')->preload()->required(),
-                    \Filament\Forms\Components\Select::make('job_position_id')->options(\App\Models\SystemSetup\JobPosition::all()->pluck('name', 'id'))->label('Job Position')->preload()->required(),
-                    \Filament\Forms\Components\Select::make('job_level_id')->options(\App\Models\SystemSetup\JobLevel::all()->pluck('name', 'id'))->label('Level')->preload()->required(),
-                    \Filament\Forms\Components\Select::make('approval_line')->options(\App\Models\User::all()->pluck('name', 'id'))->preload()->required(),
-                    \Filament\Forms\Components\Select::make('approval_manager')->options(\App\Models\User::all()->pluck('name', 'id'))->preload()->required(),
-                    \Filament\Forms\Components\Select::make('branch_id')->options(\App\Models\SystemSetup\Branch::all()->pluck('name', 'id'))->label('Branch')->preload()->required(),
-                    \Filament\Forms\Components\Select::make('status')->options(['contract'=>'contract','permanent'=>'permanent','magang'=>'magang','last daily'=>'last daily']),
-                    \Filament\Forms\Components\DatePicker::make('join_date'),
-                    \Filament\Forms\Components\DatePicker::make('sign_date')
+                    \Filament\Forms\Components\Select::make('organization_id')->options(\App\Models\Organization::all()->pluck('name', 'id'))->label('Organization')->preload()->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('job_position_id')->options(\App\Models\JobPosition::all()->pluck('name', 'id'))->label('Job Position')->preload()->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('job_level_id')->options(\App\Models\JobLevel::all()->pluck('name', 'id'))->label('Level')->preload()->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('approval_line')->options(\App\Models\User::all()->pluck('name', 'id'))->preload()->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('approval_manager')->options(\App\Models\User::all()->pluck('name', 'id'))->preload()->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('branch_id')->options(\App\Models\Branch::all()->pluck('name', 'id'))->label('Branch')->preload()->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('status')->options(['contract'=>'contract','permanent'=>'permanent','magang'=>'magang','last daily'=>'last daily'])->required()->disabled(),
+                    \Filament\Forms\Components\DatePicker::make('join_date')->required()->disabled(),
+                    \Filament\Forms\Components\DatePicker::make('sign_date')->required()->disabled()
                 ])->columns(['sm' => 1, 'xl' => 3, '2xl' => 3])
             ])->from('md')->columnSpan('full'),
             \Filament\Forms\Components\Split::make([
@@ -340,7 +342,7 @@ class Profile extends Page
             \Filament\Forms\Components\Split::make([
                 \Filament\Forms\Components\Section::make('Personal Formal Education Used')->schema([
                     \Filament\Forms\Components\Repeater::make('formal_education')->schema([
-                        \Filament\Forms\Components\Select::make('grade_id')->options(\App\Models\SystemSetup\GradeEducation::all()->pluck('name', 'id'))->label('Grade')->preload()->required(),
+                        \Filament\Forms\Components\Select::make('grade_id')->options(\App\Models\GradeEducation::all()->pluck('name', 'id'))->label('Grade')->preload()->required(),
                         \Filament\Forms\Components\TextInput::make('institution')->maxLength(100)->required(),
                         \Filament\Forms\Components\TextInput::make('majors')->maxLength(100)->required(),
                         \Filament\Forms\Components\TextInput::make('score')->maxLength(100)->numeric()->required(),
@@ -371,24 +373,24 @@ class Profile extends Page
             ])->from('md')->columnSpan('full'),
             \Filament\Forms\Components\Split::make([
                 \Filament\Forms\Components\Section::make('Personal Salary Used')->schema([
-                    \Filament\Forms\Components\TextInput::make('basic_salary')->numeric()->required(),
-                    \Filament\Forms\Components\Select::make('salary_type')->options(['Monthly'=>'Monthly', 'Weakly'=>'Weakly', 'Dayly'=>'Dayly'])->required(),
-                    \Filament\Forms\Components\TextInput::make('payment_schedule')->required(),
-                    \Filament\Forms\Components\TextInput::make('prorate_settings')->required(),
-                    \Filament\Forms\Components\TextInput::make('overtime_settings')->required(),
-                    \Filament\Forms\Components\TextInput::make('cost_center')->required(),
-                    \Filament\Forms\Components\TextInput::make('cost_center_category')->required(),
-                    \Filament\Forms\Components\TextInput::make('currency')->required(),
+                    \Filament\Forms\Components\TextInput::make('basic_salary')->numeric()->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('salary_type')->options(['Monthly'=>'Monthly', 'Weakly'=>'Weakly', 'Dayly'=>'Dayly'])->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('payment_schedule')->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('prorate_settings')->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('overtime_settings')->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('cost_center')->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('cost_center_category')->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('currency')->required()->disabled(),
                 ])->columns(['sm' => 1,'xl' => 2,'2xl' => 2]),
                 \Filament\Forms\Components\Section::make('Personal Tax Config Used')->schema([
-                    \Filament\Forms\Components\TextInput::make('npwp_15_digit_old')->numeric()->required(),
-                    \Filament\Forms\Components\TextInput::make('npwp_16_digit_new')->numeric()->required(),
-                    \Filament\Forms\Components\Select::make('ptkp_status')->options(['TK0'=>'TK0','TK1'=>'TK1','TK2'=>'TK2','TK3'=>'TK3','K0'=>'K0','K1'=>'K1','K2'=>'K2','K3'=>'K3','K/I/0'=>'K/I/0','K/I/1'=>'K/I/1','K/I/2'=>'K/I/2','K/I/3'=>'K/I/3'])->required(),
-                    \Filament\Forms\Components\Select::make('tax_method')->options(['gross'])->required(),
-                    \Filament\Forms\Components\Select::make('tax_salary')->options(['taxable'])->required(),
-                    \Filament\Forms\Components\Select::make('emp_tax_status')->options(['permanent'=>'permanent', 'contract'=>'contract', 'last-daily'=>'last-daily'])->required(),
-                    \Filament\Forms\Components\TextInput::make('beginning_netto')->numeric()->required(),
-                    \Filament\Forms\Components\TextInput::make('pph21_paid')->numeric()->required()
+                    \Filament\Forms\Components\TextInput::make('npwp_15_digit_old')->numeric()->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('npwp_16_digit_new')->numeric()->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('ptkp_status')->options(['TK0'=>'TK0','TK1'=>'TK1','TK2'=>'TK2','TK3'=>'TK3','K0'=>'K0','K1'=>'K1','K2'=>'K2','K3'=>'K3','K/I/0'=>'K/I/0','K/I/1'=>'K/I/1','K/I/2'=>'K/I/2','K/I/3'=>'K/I/3'])->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('tax_method')->options(['gross'])->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('tax_salary')->options(['taxable'])->required()->disabled(),
+                    \Filament\Forms\Components\Select::make('emp_tax_status')->options(['permanent'=>'permanent', 'contract'=>'contract', 'last-daily'=>'last-daily'])->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('beginning_netto')->numeric()->required()->disabled(),
+                    \Filament\Forms\Components\TextInput::make('pph21_paid')->numeric()->required()->disabled()
                 ])->columns(['sm' => 1,'xl' => 2,'2xl' => 2]),
             ])->from('md')->columnSpan('full'),
             \Filament\Forms\Components\Section::make('Work Experience Used')->schema([
