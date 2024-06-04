@@ -32,12 +32,14 @@ class AppServiceProvider extends ServiceProvider
         ]);
         PanelSwitch::configureUsing(function (PanelSwitch $panelSwitch) {
             $panelSwitch
+            ->modalWidth('sm')
+            ->slideOver()
             ->modalHeading('Available Panels System Integrated')
             ->icons([
                 'hr' => asset('images/svg/hrd.svg'),
                 'it' => asset('images/svg/it.svg'),
             ], $asImage = true)
-            ->iconSize(32)
+            ->iconSize(16)
             ->labels([
                 'hr' => 'Human Resources Information System (HRIS)',
                 'it' => 'Information Technology System (HTS)',

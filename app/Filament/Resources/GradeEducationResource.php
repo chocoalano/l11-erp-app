@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\GradeEducationResource\Pages;
 use App\Filament\Resources\GradeEducationResource\RelationManagers;
 use App\Models\GradeEducation;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -15,7 +16,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class GradeEducationResource extends Resource
+class GradeEducationResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = GradeEducation::class;
 

@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "arbermustafa/filament-locationpickr-field": "^2.0",
         "bezhansalleh/filament-panel-switch": "^1.0",
         "bezhansalleh/filament-shield": "^3.2",
         "filament/filament": "3.2.57",
@@ -13,7 +14,9 @@
         "flowframe/laravel-trend": "^0.2.0",
         "laravel/framework": "^11.0",
         "laravel/reverb": "@beta",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "malzariey/filament-daterangepicker-filter": "^2.6",
         "mokhosh/filament-kanban": "^2.8",
         "owenvoke/blade-fontawesome": "^2.6",
         "phpoffice/phpspreadsheet": "^2.1",

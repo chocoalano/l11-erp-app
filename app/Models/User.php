@@ -22,11 +22,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Models\Role;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes, HasRoles, HasPanelShield;
+    use HasFactory, Notifiable, SoftDeletes, HasRoles, HasPanelShield, HasApiTokens;
     protected $fillable = [
         'name',
         'nik',
@@ -92,8 +93,11 @@ class User extends Authenticatable
     {
         return $this->hasOne(UTaxConfig::class, 'user_id', 'id');
     }
-
     public function rolefind(){
         return $this->belongsToMany(Role::class, 'model_has_roles', 'model_id', 'role_id');
+    }
+    public function group_attendance()
+    {
+        return $this->belongsToMany(GroupAttendance::class, 'group_users', 'nik', 'group_attendance_id');
     }
 }

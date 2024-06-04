@@ -54,7 +54,6 @@ class UserController extends Controller
 
         $sheet1->mergeCells('A1:D1');
         $sheet1->setCellValue('A1', 'PERHATIKAN ATURAN PENGISIAN ROW IMPORT DATA PADA TABEL INI SEBELUM ANDA MEMUAT DATA IMPORT PADA SHEET "DATA USERS IMPORT", PASTIKAN SEMUA KOLOM SESUAI DENGAN ATURAN KAMI!');
-
         $sheet1->setCellValue('A2', 'COLUMNAME');
         $sheet1->setCellValue('B2', 'DESCRIPTION');
         $sheet1->setCellValue('C2', 'COLUMNAME');
