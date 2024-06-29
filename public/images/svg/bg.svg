@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.3.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 283.5 283.5" style="enable-background:new 0 0 283.5 283.5;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#1F1F1F;}
+	.st1{opacity:0.31;clip-path:url(#SVGID_2_);fill:none;stroke:#159248;stroke-width:0.5;stroke-miterlimit:10;}
+	.st2{opacity:0.15;clip-path:url(#SVGID_2_);fill:none;stroke:#159248;stroke-width:0.5;stroke-miterlimit:10;}
+	.st3{opacity:0.75;clip-path:url(#SVGID_2_);fill:none;stroke:#159248;stroke-width:0.5;stroke-miterlimit:10;}
+	.st4{clip-path:url(#SVGID_2_);fill:none;}
+	.st5{clip-path:url(#SVGID_2_);fill:url(#SVGID_3_);}
+</style>
+<g>
+	<defs>
+		<rect id="SVGID_1_" width="283.5" height="283.5"/>
+	</defs>
+	<clipPath id="SVGID_2_">
+		<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
+	</clipPath>
+	<ellipse class="st1" cx="6.2" cy="101.7" rx="141.1" ry="139.3"/>
+	<ellipse class="st2" cx="7.1" cy="101.7" rx="166.6" ry="165.4"/>
+	<ellipse class="st3" cx="0.5" cy="99.5" rx="124.9" ry="117.8"/>
+	<rect x="-55.6" y="-81.9" class="st4" width="306.8" height="406.2"/>
+	
+		<radialGradient id="SVGID_3_" cx="-1660.2758" cy="13.9838" r="681.0026" gradientTransform="matrix(-0.9998 1.808918e-02 1.485183e-02 0.8209 -1630.3763 32.5375)" gradientUnits="userSpaceOnUse">
+		<stop  offset="0" style="stop-color:#019246"/>
+		<stop  offset="6.507734e-02" style="stop-color:#167B44;stop-opacity:0.9208"/>
+		<stop  offset="0.1757" style="stop-color:#1C5A3C;stop-opacity:0.786"/>
+		<stop  offset="0.2876" style="stop-color:#193F31;stop-opacity:0.6498"/>
+		<stop  offset="0.3984" style="stop-color:#132924;stop-opacity:0.5148"/>
+		<stop  offset="0.5079" style="stop-color:#0D1918;stop-opacity:0.3815"/>
+		<stop  offset="0.6157" style="stop-color:#060C0C;stop-opacity:0.2502"/>
+		<stop  offset="0.7211" style="stop-color:#020405;stop-opacity:0.122"/>
+		<stop  offset="0.8212" style="stop-color:#020203;stop-opacity:0"/>
+	</radialGradient>
+	<path class="st5" d="M-52.1,0l498,0c0.4,7.5,0.6,15.1,0.6,22.8c0,173.5-106.6,322.2-257.9,384H-52.1V0z"/>
+</g>
+</svg>
