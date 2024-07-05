@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthenticationController;
+use App\Http\Controllers\Api\JobPositionController;
+use App\Http\Controllers\Api\OrganizationController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -13,4 +16,7 @@ Route::group(['prefix' => 'auth'], function () {
 Route::middleware('auth:sanctum')->group( function () {
     Route::resource('/attendance', AttendanceController::class);
 });
+Route::resource('/users', UserController::class);
+Route::resource('/organizations', OrganizationController::class);
+Route::resource('/job-position', JobPositionController::class);
 Route::post('sync-attendance', [AttendanceController::class, 'integratedFromMachine']);

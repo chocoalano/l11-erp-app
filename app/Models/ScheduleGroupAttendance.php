@@ -25,4 +25,8 @@ class ScheduleGroupAttendance extends Model
     {
         return $this->belongsTo(GroupAttendance::class, 'group_attendance_id', 'id');
     }
+    public function group_users(): BelongsTo
+    {
+        return $this->belongsTo(GroupUsersAttendance::class, 'group_attendance_id', 'group_attendance_id');
+    }
 }
