@@ -13,13 +13,8 @@ return new class extends Migration
     {
         Schema::create('group_users', function (Blueprint $table) {
             $table->id();
-            $table->string('user_id');
-            $table->unsignedBigInteger('group_attendance_id');
-            $table->timestamps();
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('group_attendance_id')->references('id')->on('group_attendances')->onDelete('cascade');
-
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('group_attendance_id')->constrained()->onDelete('cascade');
             $table->unique(['user_id', 'group_attendance_id']);
         });
     }

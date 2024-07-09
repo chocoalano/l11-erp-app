@@ -17,15 +17,15 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('urgent')->default(false);
             $table->tinyInteger('progress')->default(0);
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('status')->default('Low');
             $table->unsignedInteger('order_column');
             $table->timestamps();
         });
 
         Schema::create('task_user', function(Blueprint $table) {
-            $table->foreignId('task_id')->constrained();
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('task_id')->references('id')->on('tasks')->onDelete('cascade');
+            $table->foreignId('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
