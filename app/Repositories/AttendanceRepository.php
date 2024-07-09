@@ -224,7 +224,7 @@ class AttendanceRepository implements AttendanceInterface
                             'full_address'=>'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
                         ],
                     );
-                    $lvl = JobLevel::where(['name', 'LEVEL TIDAK DIKETAHUI'])->first();
+                    $lvl = JobLevel::find(7)->first();
                     $approval = User::where(['email', 'superadmin@sinergiabadisentosa.com'])->first();
                     $user->employe()->create([
                         'organization_id'=>$dept->id,
