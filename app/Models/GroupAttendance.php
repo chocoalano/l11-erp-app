@@ -22,6 +22,6 @@ class GroupAttendance extends Model
 
     public function user()
     {
-        return $this->belongsToMany(User::class, 'group_users', 'group_attendance_id', 'nik');
+        return $this->belongsToMany(User::class, 'group_users', 'group_attendance_id', 'id');
     }
 }

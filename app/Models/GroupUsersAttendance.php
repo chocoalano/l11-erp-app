@@ -10,7 +10,7 @@ class GroupUsersAttendance extends Model
     use HasFactory;
     protected $table="group_users";
     protected $fillable = [
-        'nik',
+        'user_id',
         'group_attendance_id'
     ];
 }

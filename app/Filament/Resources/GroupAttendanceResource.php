@@ -82,6 +82,15 @@ class GroupAttendanceResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
+                ->mutateRecordDataUsing(function (array $data): array {
+                    $q = GroupAttendance::with('user')->where('id', '=', $data['id'])->first();
+                    dd($q);
+
+                    $data['name'] = $q->name;
+                    $data['nik'] = [];
+                    $data['description'] = $q->description;
+                    return $data;
+                })
                 ->using(function (Model $record, array $data): Model {
                     $q = GroupAttendance::find($record->id);
                     $q->name = $data['name'];
