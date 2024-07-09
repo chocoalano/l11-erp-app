@@ -305,13 +305,13 @@ class AttendanceRepository implements AttendanceInterface
                     'schedule_group_attendances_id' => $find->id,
                 ])->first();
                 if ($q) {
-                    $q->attendance()->updateOrCreate(
-                        [
-                            'nik' => $k['emp_code'],
-                            'date' => $date->format('Y-m-d'),
-                            'schedule_group_attendances_id' => $find->id,
-                        ],
-                        [
+                    $cek = $this->model::whereHas('attendance', function ($query) use ($k, $date) {
+                        $query
+                        ->where('nik', $k['emp_code'])
+                        ->where('date', $date->format('Y-m-d'));
+                    })->count();
+                    if ($cek < 1) {
+                        $q->attendance()->create([
                             'nik' => $k['emp_code'],
                             'schedule_group_attendances_id' => $find->id,
                             'lat' => (double)'-6.1749639',
@@ -319,8 +319,8 @@ class AttendanceRepository implements AttendanceInterface
                             'date' => $date->format('Y-m-d'),
                             'time' => $time,
                             'status' => $status,
-                        ]
-                    );
+                        ]);
+                    }
                 }
             }
         }
