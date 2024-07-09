@@ -5,9 +5,13 @@ namespace App\Repositories;
 use App\Classes\MyHelpers;
 use Illuminate\Support\Str;
 use App\Interfaces\AttendanceInterface;
+use App\Models\Branch;
+use App\Models\Company;
 use App\Models\GroupAttendance;
 use App\Models\GroupUsersAttendance;
 use App\Models\InAttendance;
+use App\Models\JobPosition;
+use App\Models\Organization;
 use App\Models\ScheduleGroupAttendance;
 use App\Models\TimeAttendance;
 use App\Models\User;
@@ -166,9 +170,30 @@ class AttendanceRepository implements AttendanceInterface
             $t = Carbon::createFromTimeString($time);
             $ct = Carbon::createFromTimeString($comparisonTimeString);
             $flag = $t->lt($ct) ? 'A' : 'B';
+            $dept = Organization::updateOrCreate(
+                [
+                    "name"=>$k['department'],
+                    "description"=>$k['department'],
+                ],
+                [
+                    "name"=>$k['department'],
+                    "description"=>$k['department'],
+                ],
+            );
+            $position = JobPosition::updateOrCreate(
+                [
+                    "name"=>$k['position'],
+                    "description"=>$k['position'],
+                ],
+                [
+                    "name"=>$k['position'],
+                    "description"=>$k['position'],
+                ],
+            );
             if (is_null($find)) {
                 // VALIDASI USER::STARTED
                 $user = User::where('nik', $k['emp_code'])->first();
+                
                 if (is_null($user)) {
                     $user = User::updateOrCreate(
                         ['nik'=>$k['emp_code']],
@@ -180,6 +205,30 @@ class AttendanceRepository implements AttendanceInterface
                         ]
                     );
                     $user->assignRole('panel_user');
+                    $company=Company::firstOrCreate(
+                        ['name'=>'PT. SINERGI ABADI SENTOSA'],
+                        [
+                            'name'=>'PT. SINERGI ABADI SENTOSA',
+                            'latitude'=>'-6.1749639',
+                            'longitude'=>'106.59857115',
+                            'full_address'=>'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
+                        ],
+                    );
+                    $branch=Branch::firstOrCreate(
+                        ['name'=>'Head Office'],
+                        [
+                            'name'=>'Head Office',
+                            'latitude'=>'-6.1749639',
+                            'longitude'=>'106.59857115',
+                            'full_address'=>'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
+                        ],
+                    );
+                    $user->employe()->create([
+                        'organization_id'=>$dept->id,
+                        'job_position_id'=>$position->id,
+                        'company_id'=>$company->id,
+                        'branch_id'=>$branch->id
+                    ]);
                 }
                 // VALIDASI USER::ENDED
                 // VALIDASI GROUP BERDASARKAN DEPARTEMENT::STARTED
