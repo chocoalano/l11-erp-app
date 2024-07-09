@@ -225,7 +225,7 @@ class AttendanceRepository implements AttendanceInterface
                         ],
                     );
                     $lvl = JobLevel::find(7)->first();
-                    $approval = User::where(['email', 'superadmin@sinergiabadisentosa.com'])->first();
+                    $approval = User::find(1)->first();
                     $user->employe()->create([
                         'organization_id'=>$dept->id,
                         'job_position_id'=>$position->id,
