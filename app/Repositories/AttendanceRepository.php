@@ -175,7 +175,7 @@ class AttendanceRepository implements AttendanceInterface
                         [
                             'name' => $k['first_name'],
                             'nik' => $k['emp_code'],
-                            'email' => Str::snake($k['first_name']).'@sinergiabadisentosa.com',
+                            'email' => Str::snake($k['first_name']).'_'.$k['emp_code'].'@sinergiabadisentosa.com',
                             'password' => Hash::make($k['emp_code'])
                         ]
                     );

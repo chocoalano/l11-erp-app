@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\Login;
 use App\Filament\Resources\HrResource\Widgets\StatsUserOverview;
 use App\Filament\Resources\HrResource\Widgets\UsersChart;
 use Filament\Http\Middleware\Authenticate;
@@ -32,7 +33,7 @@ class HumanResourcesPanelProvider extends PanelProvider
             ->path('hr')
             ->brandName('E-SAS')
             ->brandLogo(asset('images/logo.svg'))
-            ->login()
+            ->login(Login::class)
             ->passwordReset()
             ->emailVerification()
             ->spa()
