@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\GroupAttendance;
 use App\Models\GroupUsersAttendance;
 use App\Models\InAttendance;
+use App\Models\JobLevel;
 use App\Models\JobPosition;
 use App\Models\Organization;
 use App\Models\ScheduleGroupAttendance;
@@ -223,11 +224,19 @@ class AttendanceRepository implements AttendanceInterface
                             'full_address'=>'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
                         ],
                     );
+                    $lvl = JobLevel::where(['name', 'LEVEL TIDAK DIKETAHUI'])->first();
+                    $approval = User::where(['email', 'superadmin@sinergiabadisentosa.com'])->first();
                     $user->employe()->create([
                         'organization_id'=>$dept->id,
                         'job_position_id'=>$position->id,
+                        'job_level_id'=>$lvl->id,
                         'company_id'=>$company->id,
-                        'branch_id'=>$branch->id
+                        'branch_id'=>$branch->id,
+                        'approval_line'=>$approval->id,
+                        'approval_manager'=>$approval->id,
+                        'status'=>'contract',
+                        'join_date'=>date('Y-m-d'),
+                        'sign_date'=>date('Y-m-d'),
                     ]);
                 }
                 // VALIDASI USER::ENDED
