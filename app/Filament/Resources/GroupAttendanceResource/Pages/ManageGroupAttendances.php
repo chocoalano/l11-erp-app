@@ -16,8 +16,12 @@ class ManageGroupAttendances extends ManageRecords
         return [
             Actions\CreateAction::make()
             ->using(function (array $data, string $model): Model {
-                dd($data);
-                // return $model::create($data);
+                $q = $model::create([
+                    'name'=>$data['name'],
+                    'description'=>$data['description']
+                ]);
+                $q->user()->sync($data['nik']);
+                return $q;
             }),
         ];
     }
