@@ -90,6 +90,8 @@ class AttendanceController extends Controller
             return ApiResponseClass::rollback($ex);
         }
         // $q = $this->proses->sync($request->toArray());
+        // return $q;
+        // $q = $this->proses->sync($request->toArray());
         // return ApiResponseClass::sendResponse($q,'Presence Successful',200);
         // $in = [];
         // $out = [];

@@ -160,18 +160,11 @@ class AttendanceRepository implements AttendanceInterface
     {
         $helper = new MyHelpers();
         foreach ($data['data'] as $k) {
-            $find = ScheduleGroupAttendance::with('time', 'group_attendance', 'group_users')
-            ->whereHas('group_users', function ($query) use ($k) {
-                $query->where('nik', $k['emp_code']);
-            })
-            ->first();
             $date = Carbon::parse($k['punch_time']);
             $time = $date->format('H:i:s');
-            $comparisonTimeString = "12:00:00";
-            $t = Carbon::createFromTimeString($time);
-            $ct = Carbon::createFromTimeString($comparisonTimeString);
-            $flag = $t->lt($ct) ? 'A' : 'B';
-            $dept = Organization::updateOrCreate(
+            // VALIDASI USER::STARTED
+            $user = User::where('nik', $k['emp_code'])->first();
+            $dept = Organization::firstOrCreate(
                 [
                     "name"=>$k['department'],
                     "description"=>$k['department'],
@@ -181,7 +174,7 @@ class AttendanceRepository implements AttendanceInterface
                     "description"=>$k['department'],
                 ],
             );
-            $position = JobPosition::updateOrCreate(
+            $position = JobPosition::firstOrCreate(
                 [
                     "name"=>$k['position'],
                     "description"=>$k['position'],
@@ -191,115 +184,89 @@ class AttendanceRepository implements AttendanceInterface
                     "description"=>$k['position'],
                 ],
             );
-            if (is_null($find)) {
-                // VALIDASI USER::STARTED
-                $user = User::where('nik', $k['emp_code'])->first();
-                
-                if (is_null($user)) {
-                    $user = User::updateOrCreate(
-                        ['nik'=>$k['emp_code']],
-                        [
-                            'name' => $k['first_name'],
-                            'nik' => $k['emp_code'],
-                            'email' => Str::snake($k['first_name']).'_'.$k['emp_code'].'@sinergiabadisentosa.com',
-                            'password' => Hash::make($k['emp_code'])
-                        ]
-                    );
-                    $user->assignRole('panel_user');
-                    $company=Company::firstOrCreate(
-                        ['name'=>'PT. SINERGI ABADI SENTOSA'],
-                        [
-                            'name'=>'PT. SINERGI ABADI SENTOSA',
-                            'latitude'=>'-6.1749639',
-                            'longitude'=>'106.59857115',
-                            'full_address'=>'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
-                        ],
-                    );
-                    $branch=Branch::firstOrCreate(
-                        ['name'=>'Head Office'],
-                        [
-                            'name'=>'Head Office',
-                            'latitude'=>'-6.1749639',
-                            'longitude'=>'106.59857115',
-                            'full_address'=>'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
-                        ],
-                    );
-                    $lvl = JobLevel::find(7)->first();
-                    $approval = User::find(1)->first();
-                    $user->employe()->create([
-                        'organization_id'=>$dept->id,
-                        'job_position_id'=>$position->id,
-                        'job_level_id'=>$lvl->id,
-                        'company_id'=>$company->id,
-                        'branch_id'=>$branch->id,
-                        'approval_line'=>$approval->id,
-                        'approval_manager'=>$approval->id,
-                        'status'=>'contract',
-                        'join_date'=>date('Y-m-d'),
-                        'sign_date'=>date('Y-m-d'),
-                    ]);
-                }
-                // VALIDASI USER::ENDED
-                // VALIDASI GROUP BERDASARKAN DEPARTEMENT::STARTED
-                $groupPresence = GroupAttendance::where('name', $k['department'].'-'.$flag)->first();
-                if (is_null($groupPresence)) {
-                    $groupPresence = GroupAttendance::firstOrCreate(
-                        ['name'=>$k['department'].'-'.$flag, 'description'=>'Information group '.$k['department']],
-                        ['name'=>$k['department'].'-'.$flag, 'description'=>'Information group '.$k['department']],
-                    );
-                }
-                GroupUsersAttendance::firstOrCreate(
-                    [ "group_attendance_id"=>$groupPresence->id, "nik"=>$user->nik ],
-                    [ "group_attendance_id"=>$groupPresence->id, "nik"=>$user->nik ],
-                );
-                // VALIDASI GROUP BERDASARKAN DEPARTEMENT::ENDED
-                // VALIDASI WAKTU BERDASARKAN JAM::STARTED
-                $columnFindTime = (int)$k['punch_state'] > 0 ? 'out':'in';
-                $findTime = TimeAttendance::whereTime($columnFindTime, '>', $time)->orWhereTime($columnFindTime, '<', $time)->first();
-                $roundedTime = $date->roundHour();
-                $rtime = $findTime;
-                if(is_null($findTime)){
-                    $currentTime = Carbon::parse($roundedTime);
-                    $futureTime = $currentTime->copy()->addHours(7);
-                    $oldTime = $currentTime->copy()->subHours(7);
-    
-                    $rtime = TimeAttendance::updateOrCreate(
-                        [$columnFindTime => $roundedTime],
-                        [
-                            'type'=>'Shift '.Str::lower(Str::random(5)),
-                            'in'=>(int)$k['punch_state'] < 1 ? $roundedTime:$oldTime->toTimeString(),
-                            'out'=>(int)$k['punch_state'] < 1 ? $futureTime->toTimeString():$roundedTime,
-                        ]
-                    );
-                }
-                $groupPresence->schedule_attendance()->updateOrCreate(
-                    ['time_attendance_id'=>1],
+            if (is_null($user)) {
+                // kalo kosong, maka siapin usernya
+                $user = User::create([
+                    'name' => $k['first_name'],
+                    'nik' => $k['emp_code'],
+                    'email' => Str::snake($k['first_name']).'_'.$k['emp_code'].'@sinergiabadisentosa.com',
+                    'password' => Hash::make($k['emp_code'])
+                ]);
+                $user->assignRole('panel_user');
+                $company=Company::firstOrCreate(
+                    ['name'=>'PT. SINERGI ABADI SENTOSA'],
                     [
-                        'time_attendance_id'=>$rtime->id,
-                        'date'=>$date->format('Y-m-d'),
-                        'status'=>$k['punch_state_display'] === "Check In" ? 'in' : 'out'
+                        'name'=>'PT. SINERGI ABADI SENTOSA',
+                        'latitude'=>'-6.1749639',
+                        'longitude'=>'106.59857115',
+                        'full_address'=>'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
                     ],
                 );
-                // VALIDASI WAKTU BERDASARKAN JAM::ENDED
-                $find = ScheduleGroupAttendance::with('time', 'group_attendance', 'group_users')
-                ->whereHas('group_users', function ($query) use ($k) {
-                    $query->where('nik', $k['emp_code']);
-                })
-                ->first();
+                $branch=Branch::firstOrCreate(
+                    ['name'=>'Head Office'],
+                    [
+                        'name'=>'Head Office',
+                        'latitude'=>'-6.1749639',
+                        'longitude'=>'106.59857115',
+                        'full_address'=>'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
+                    ],
+                );
+                $lvl = JobLevel::find(7)->first();
+                $approval = User::find(1)->first();
+                $user->employe()->create([
+                    'organization_id'=>$dept->id,
+                    'job_position_id'=>$position->id,
+                    'job_level_id'=>$lvl->id,
+                    'company_id'=>$company->id,
+                    'branch_id'=>$branch->id,
+                    'approval_line'=>$approval->id,
+                    'approval_manager'=>$approval->id,
+                    'status'=>'contract',
+                    'join_date'=>date('Y-m-d'),
+                    'sign_date'=>date('Y-m-d'),
+                ]);
             }
-            $validate = $helper->cekStatusTelatAbsen($find->group_attendance_id, $time, (int)$k['punch_state'] < 1 ? 'in' : 'out');
+            // VALIDASI USER::ENDED
+            // VALIDASI USER-GROUP-ABSEN::STARTED
+            if (count($user->group_attendance) < 1) {
+                $group = $helper->validateAndFindGroupAttendance($k['department'], $k['position'], $time, (int)$k['punch_state']);
+                $groupPresence = GroupAttendance::where('name', $group)->first();
+                $groupPresence->user()->attach([$user->id]);
+            }
+            // VALIDASI USER-GROUP-ABSEN::ENDED
+            // VALIDASI USER-GROUP-SCHEDULE-ABSEN::STARTED
+            $findGroup = GroupAttendance::whereHas('user', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->first();
+            $groupPresence = GroupAttendance::find($findGroup->id)->first();
+            $jadwal = $groupPresence->schedule_attendance;
+            if (count($groupPresence->schedule_attendance) < 1) {
+                $shift = DB::table('time_attendances')
+                ->select('*', DB::raw('ABS(TIME_TO_SEC(TIMEDIFF("'.$time.'", `in`))) AS time_difference'))
+                ->orderBy('time_difference', 'asc')
+                ->first();
+                $groupPresence->schedule_attendance()->create([
+                    "time_attendance_id"=>$shift->id,
+                    "date"=>$date->format('Y-m-d'),
+                    "status"=>'unpresent'
+                ]);
+                $groupPresence = GroupAttendance::find($findGroup->id)->first();
+                $jadwal = $groupPresence->schedule_attendance;
+            }
+            // VALIDASI USER-GROUP-SCHEDULE-ABSEN::ENDED
+            $validate = $helper->cekStatusTelatAbsen($jadwal[0]->group_attendance_id, $time, (int)$k['punch_state'] < 1 ? 'in' : 'out');
             $status = $validate['status'];
             if ((int)$k['punch_state'] < 1) {
                 // cek jam masuk simpan data pertama kali saja
                 $cek = $this->model::where([
                     'nik' => $k['emp_code'],
                     'date' => $date->format('Y-m-d'),
-                    'schedule_group_attendances_id' => $find->id,
+                    'schedule_group_attendances_id' => $jadwal[0]->id,
                 ])->count();
                 if ($cek < 1) {
                     $this->model::create([
                         'nik' => $k['emp_code'],
-                        'schedule_group_attendances_id' => $find->id,
+                        'schedule_group_attendances_id' => $jadwal[0]->id,
                         'lat' => (double)'-6.1749639',
                         'lng' => (double)'106.598571,15',
                         'date' => $date->format('Y-m-d'),
@@ -311,7 +278,7 @@ class AttendanceRepository implements AttendanceInterface
                 $q = $this->model::where([
                     'nik' => $k['emp_code'],
                     'date' => $date->format('Y-m-d'),
-                    'schedule_group_attendances_id' => $find->id,
+                    'schedule_group_attendances_id' => $jadwal[0]->id,
                 ])->first();
                 if ($q) {
                     $cek = $this->model::whereHas('attendance', function ($query) use ($k, $date) {
@@ -322,7 +289,7 @@ class AttendanceRepository implements AttendanceInterface
                     if ($cek < 1) {
                         $q->attendance()->create([
                             'nik' => $k['emp_code'],
-                            'schedule_group_attendances_id' => $find->id,
+                            'schedule_group_attendances_id' => $jadwal[0]->id,
                             'lat' => (double)'-6.1749639',
                             'lng' => (double)'106.598571,15',
                             'date' => $date->format('Y-m-d'),

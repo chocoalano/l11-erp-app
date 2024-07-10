@@ -99,6 +99,6 @@ class User extends Authenticatable
     }
     public function group_attendance()
     {
-        return $this->belongsToMany(GroupAttendance::class, 'group_users', 'nik', 'group_attendance_id');
+        return $this->belongsToMany(GroupAttendance::class, 'group_users', 'user_id', 'group_attendance_id');
     }
 }

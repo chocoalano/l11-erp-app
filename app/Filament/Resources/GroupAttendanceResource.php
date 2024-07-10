@@ -52,9 +52,9 @@ class GroupAttendanceResource extends Resource implements HasShieldPermissions
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('nik')
+                Forms\Components\Select::make('user_id')
                     ->label('User members')
-                    ->options(\App\Models\User::all()->pluck('name', 'nik'))
+                    ->relationship(name: 'user', titleAttribute: 'name')
                     ->multiple()
                     ->preload()
                     ->searchable()
@@ -81,24 +81,7 @@ class GroupAttendanceResource extends Resource implements HasShieldPermissions
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                ->mutateRecordDataUsing(function (array $data): array {
-                    $q = GroupAttendance::with('user')->where('id', '=', $data['id'])->first();
-                    dd($q);
-
-                    $data['name'] = $q->name;
-                    $data['nik'] = [];
-                    $data['description'] = $q->description;
-                    return $data;
-                })
-                ->using(function (Model $record, array $data): Model {
-                    $q = GroupAttendance::find($record->id);
-                    $q->name = $data['name'];
-                    $q->description = $data['description'];
-                    $q->save();
-                    $q->user()->sync($data['nik']);
-                    return $q;
-                }),
+                Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\ViewAction::make(),
             ])

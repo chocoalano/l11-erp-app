@@ -14,15 +14,7 @@ class ManageGroupAttendances extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-            ->using(function (array $data, string $model): Model {
-                $q = $model::create([
-                    'name'=>$data['name'],
-                    'description'=>$data['description']
-                ]);
-                $q->user()->sync($data['nik']);
-                return $q;
-            }),
+            Actions\CreateAction::make(),
         ];
     }
 }
