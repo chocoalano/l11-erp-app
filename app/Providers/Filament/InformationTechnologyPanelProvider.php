@@ -2,13 +2,13 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\Login;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -29,7 +29,7 @@ class InformationTechnologyPanelProvider extends PanelProvider
             ->path('it')
             ->brandName('E-SAS')
             ->brandLogo(asset('images/logo.svg'))
-            ->login()
+            ->login(Login::class)
             ->passwordReset()
             ->emailVerification()
             ->spa()
