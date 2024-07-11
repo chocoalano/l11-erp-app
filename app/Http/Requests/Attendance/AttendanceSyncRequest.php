@@ -26,25 +26,13 @@ class AttendanceSyncRequest extends FormRequest
         return [
             'data' => 'required|array',
             'data.*.id' => 'required|integer',
-            'data.*.emp' => 'required|integer',
             'data.*.emp_code' => 'required|string|max:255',
             'data.*.first_name' => 'required|string|max:255',
             'data.*.last_name' => 'nullable|string|max:255',
             'data.*.department' => 'required|string|max:255',
             'data.*.position' => 'required|string|max:255',
             'data.*.punch_time' => 'required|date_format:Y-m-d H:i:s',
-            'data.*.punch_state' => 'required|string|max:1',
-            'data.*.punch_state_display' => 'required|string|max:255',
-            'data.*.verify_type' => 'required|integer',
-            'data.*.verify_type_display' => 'required|string|max:255',
-            'data.*.work_code' => 'required|string|max:1',
-            'data.*.gps_location' => 'nullable|string',
-            'data.*.area_alias' => 'required|string|max:255',
-            'data.*.terminal_sn' => 'required|string|max:255',
-            'data.*.temperature' => 'required|numeric',
-            'data.*.is_mask' => 'required|string|max:3',
-            'data.*.terminal_alias' => 'required|string|max:255',
-            'data.*.upload_time' => 'required|date_format:Y-m-d H:i:s',
+            'data.*.punch_state' => 'required|string|max:1'
         ];
     }
 

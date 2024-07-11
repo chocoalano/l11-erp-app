@@ -7,10 +7,12 @@ use App\Http\Requests\Attendance\AttendanceInOutRequest;
 use App\Http\Requests\Attendance\AttendanceSyncRequest;
 use App\Http\Requests\Attendance\AttendanceUpdateRequest;
 use App\Interfaces\AttendanceInterface;
+use App\Jobs\ProcessLargeData;
 use App\Models\InAttendance;
 use App\Models\OutAttendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AttendanceController extends Controller
 {
@@ -79,13 +81,13 @@ class AttendanceController extends Controller
 
         return ApiResponseClass::sendResponse('Delete Successful','',204);
     }
-    public function integratedFromMachine(AttendanceSyncRequest $request){
+    public function integratedFromMachine(Request $request){
         DB::beginTransaction();
         try{
-             $q = $this->proses->sync($request->toArray());
-
-             DB::commit();
-             return ApiResponseClass::sendResponse($q,'Presence Successful',200);
+            $data = $request->all();
+            $q = ProcessLargeData::dispatch($data['data']);
+            DB::commit();
+            return ApiResponseClass::sendResponse($q,'Presence Successful',200);
         }catch(\Exception $ex){
             return ApiResponseClass::rollback($ex);
         }
