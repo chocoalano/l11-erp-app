@@ -21,12 +21,15 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProcessLargeData implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     protected $data;
+    public $tries = 5; // Set jumlah maksimal percobaan
+    public $timeout = 300; // Set waktu timeout dalam detik
     /**
      * Create a new job instance.
      */
@@ -55,6 +58,7 @@ class ProcessLargeData implements ShouldQueue
             ]);
 
             if ($validator->fails()) {
+                Log::error('Validation failed for chunk', ['errors' => $validator->errors()]);
                 return $validator->errors();
             }
             foreach ($chunk->toArray() as $k) {
@@ -199,5 +203,10 @@ class ProcessLargeData implements ShouldQueue
                 }
             }
         });
+    }
+    public function failed(\Exception $exception)
+    {
+        // Tangani kegagalan job di sini
+        Log::error('Job failed', ['exception' => $exception]);
     }
 }

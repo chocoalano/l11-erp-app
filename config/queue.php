@@ -41,6 +41,7 @@ return [
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
             'after_commit' => false,
+            'timeout' => 3000, // Set waktu timeout dalam detik
         ],
 
         'beanstalkd' => [
@@ -69,6 +70,7 @@ return [
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
             'block_for' => null,
+            'timeout' => 3000, // Set waktu timeout dalam detik
             'after_commit' => false,
         ],
 
