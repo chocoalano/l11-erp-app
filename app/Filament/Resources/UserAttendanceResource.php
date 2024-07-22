@@ -66,7 +66,7 @@ class UserAttendanceResource extends Resource
                 Tables\Columns\TextColumn::make('schedule.date')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('date'),
+                Tables\Columns\TextColumn::make('date')->sortable(),
                 Tables\Columns\TextColumn::make('time')->label('In'),
                 Tables\Columns\TextColumn::make('attendance.time')->label('Out'),
             ])
