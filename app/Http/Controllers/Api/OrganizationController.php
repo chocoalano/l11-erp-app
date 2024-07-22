@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
-use App\Interfaces\OrganizationInterface;
+use App\Interfaces\Hris\OrganizationInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 

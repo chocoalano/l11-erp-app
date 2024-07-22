@@ -19,7 +19,7 @@ use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 class TasksKanbanBoard extends KanbanBoard
 {
     use HasPageShield;
-    protected static ?string $title = 'Tasks';
+    protected static ?string $title = 'Ticket Support IT';
 
     protected static string $view = 'filament-kanban::kanban-board';
  

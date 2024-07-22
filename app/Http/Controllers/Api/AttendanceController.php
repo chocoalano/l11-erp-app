@@ -5,7 +5,7 @@ use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Attendance\AttendanceInOutRequest;
 use App\Http\Requests\Attendance\AttendanceUpdateRequest;
-use App\Interfaces\AttendanceInterface;
+use App\Interfaces\Hris\AttendanceInterface;
 use App\Jobs\ProcessLargeData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

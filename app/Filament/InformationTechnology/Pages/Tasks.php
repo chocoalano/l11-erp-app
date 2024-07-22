@@ -4,6 +4,7 @@ namespace App\Filament\InformationTechnology\Pages;
 
 use App\Enums\TaskStatus;
 use App\Models\Task;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -15,8 +16,9 @@ use Illuminate\Support\Collection;
 
 class Tasks extends KanbanBoard
 {
-    protected static ?string $title = 'Tasks';
-    protected static ?string $navigationIcon = 'heroicon-o-presentation-chart-line';
+    use HasPageShield;
+    protected static ?string $title = 'Ticket Support IT';
+    protected static ?string $navigationIcon = 'fas-ticket';
 
     protected static string $view = 'filament-kanban::kanban-board';
  

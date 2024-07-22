@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use BezhanSalleh\PanelSwitch\PanelSwitch;
+use Filament\Support\Facades\FilamentIcon;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        FilamentIcon::register([
+            'panels::sidebar.collapse-button' => 'heroicon-s-bars-4',
+            'panels::sidebar.expand-button' => 'heroicon-s-bars-4',
+        ]);
         FilamentColor::register([
             'danger' => Color::Red,
             'gray' => Color::Zinc,
@@ -38,11 +43,13 @@ class AppServiceProvider extends ServiceProvider
             ->icons([
                 'hr' => asset('images/svg/hrd.svg'),
                 'it' => asset('images/svg/it.svg'),
+                'marketing' => asset('images/svg/marketing.svg'),
             ], $asImage = true)
             ->iconSize(16)
             ->labels([
-                'hr' => 'Human Resources Information System (HRIS)',
-                'it' => 'Information Technology System (HTS)',
+                'hr' => 'HRIS',
+                'it' => 'HTS',
+                'marketing' => 'MIS',
             ]);
         });
     }

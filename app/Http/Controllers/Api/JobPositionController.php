@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
-use App\Interfaces\JobPositionInterface;
+use App\Interfaces\Hris\JobPositionInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 

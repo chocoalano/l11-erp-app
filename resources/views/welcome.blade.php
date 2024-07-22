@@ -125,6 +125,33 @@
                                     d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
                             </svg>
                         </a>
+                        <a href="{{ route('filament.marketing.auth.login') }}"
+                            class="flex items-start gap-4 rounded-lg bg-white p-6 shadow-[0px_14px_34px_0px_rgba(0,0,0,0.08)] ring-1 ring-white/[0.05] transition duration-300 hover:text-black/70 hover:ring-black/20 focus:outline-none focus-visible:ring-[#079246] lg:pb-10 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:text-white/70 dark:hover:ring-zinc-700 dark:focus-visible:ring-[#079246]">
+                            <div
+                                class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#079246]/10 sm:size-16">
+                                <img src="{{ asset('images/svg/intro-marketing.svg') }}" alt="intro-hrd">
+                            </div>
+
+                            <div class="pt-3 sm:pt-5">
+                                <h2 class="text-xl font-semibold text-black dark:text-white">MIS (Marketing Information
+                                    System)</h2>
+
+                                <p class="mt-4 text-sm/relaxed">
+                                    Marketing Information System (MIS) is a system designed to collect, store, analyze, and distribute information relevant to marketing management. The goal is to help marketing management make better and faster decisions, and help introduce products or companies to the public (potential customers). The following modules are included, among others, 
+                                    <strong class="font-semibold text-black dark:text-white">Contact and customer management</strong>, 
+                                    <strong class="font-semibold text-black dark:text-white">Customer services, Report & Analytics</strong>, 
+                                    <strong class="font-semibold text-black dark:text-white">partner relationship management</strong>,
+                                    <strong class="font-semibold text-black dark:text-white">Management Search Engine Optimization (SEO)</strong>,
+                                    <strong class="font-semibold text-black dark:text-white">Website Management</strong>
+                                </p>
+                            </div>
+
+                            <svg class="size-6 shrink-0 self-center stroke-[#079246]" xmlns="http://www.w3.org/2000/svg"
+                                fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+                            </svg>
+                        </a>
                     </div>
                 </main>
 

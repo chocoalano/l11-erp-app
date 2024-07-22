@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Classes\ApiResponseClass;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ProfileUpdateRequest;
-use App\Interfaces\AuthenticationInterface;
+use App\Interfaces\Hris\AuthenticationInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;

@@ -10,6 +10,7 @@ class StatsUserOverview extends BaseWidget
 {
     use HasWidgetShield;
     protected static ?string $pollingInterval = '10s';
+    protected static ?int $sort = 0;
     protected function getStats(): array
     {
         $count_users_total = \App\Models\User::count();

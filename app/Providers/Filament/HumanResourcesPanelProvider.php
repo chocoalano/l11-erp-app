@@ -20,6 +20,8 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\MenuItem;
 use App\Filament\Pages\Profile;
+use App\Filament\Widgets\AttendanceLateChart;
+use App\Filament\Widgets\AttendanceUnlateChart;
 
 class HumanResourcesPanelProvider extends PanelProvider
 {
@@ -71,6 +73,8 @@ class HumanResourcesPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 StatsUserOverview::class,
+                AttendanceLateChart::class,
+                AttendanceUnlateChart::class,
                 UsersChart::class,
             ])
             ->middleware([

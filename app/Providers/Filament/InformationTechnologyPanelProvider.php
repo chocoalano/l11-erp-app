@@ -19,6 +19,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\NavigationItem;
 use Filament\Navigation\MenuItem;
 use App\Filament\InformationTechnology\Pages\Profile;
+use App\Filament\InformationTechnology\Widgets\SupportItOverview;
 
 class InformationTechnologyPanelProvider extends PanelProvider
 {
@@ -40,11 +41,6 @@ class InformationTechnologyPanelProvider extends PanelProvider
                     ->label('Profile')
                     ->url(fn (): string => Profile::getUrl())
                     ->icon('fas-user')
-            ])
-            ->navigationItems([
-                NavigationItem::make('Tasks')
-                    ->url('hr/tasks-kanban-board')
-                    ->icon('heroicon-o-presentation-chart-line')
             ])
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
@@ -72,6 +68,7 @@ class InformationTechnologyPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/InformationTechnology/Widgets'), for: 'App\\Filament\\InformationTechnology\\Widgets')
             ->widgets([
+                SupportItOverview::class
                 // Widgets\AccountWidget::class,
                 // Widgets\FilamentInfoWidget::class,
             ])

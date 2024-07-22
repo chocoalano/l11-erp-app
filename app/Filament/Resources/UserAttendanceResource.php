@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserAttendanceResource\Pages;
-use App\Filament\Resources\UserAttendanceResource\RelationManagers;
 use App\Models\InAttendance;
 use App\Models\OutAttendance;
 use Filament\Forms\Components\DatePicker;
@@ -72,7 +71,7 @@ class UserAttendanceResource extends Resource
                 Tables\Columns\TextColumn::make('attendance.time')->label('Out'),
             ])
             ->filters([
-                DateRangeFilter::make('created_at')
+                DateRangeFilter::make('date')
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

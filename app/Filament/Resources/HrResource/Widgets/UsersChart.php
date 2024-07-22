@@ -10,6 +10,7 @@ use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 class UsersChart extends ChartWidget
 {
     use HasWidgetShield;
+    protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
     protected static ?string $heading = 'Chart Users Sign In';
 
