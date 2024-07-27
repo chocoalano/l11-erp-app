@@ -12,18 +12,18 @@ class StatsDigitalMarketingOverview extends BaseWidget
     protected static ?string $pollingInterval = '10s';
     protected function getStats(): array
     {
-        $count_about_total_isactive = \App\Models\Marketing\Compro\AboutUs::where('active', true)->count();
-        $count_about_total = \App\Models\Marketing\Compro\AboutUs::count();
-        $count_article_total_isactive = \App\Models\Marketing\Compro\Article::where('active', true)->count();
-        $count_article_total = \App\Models\Marketing\Compro\Article::count();
-        $count_article_category_total = \App\Models\Marketing\Compro\ArticleCategory::count();
-        $count_award_total_isactive = \App\Models\Marketing\Compro\AwardItem::where('active', true)->count();
-        $count_certificate_total_isactive = \App\Models\Marketing\Compro\CertificateItem::where('active', true)->count();
-        $count_carousel_total_isactive = \App\Models\Marketing\Compro\Carousel::where('active', true)->count();
-        $count_contact_total_isactive = \App\Models\Marketing\Compro\Contact::count();
-        $count_meta_total_isactive = \App\Models\Marketing\Compro\Meta::count();
-        $count_product_total = \App\Models\Marketing\Compro\ProductItem::count();
-        $count_product_total_isactive = \App\Models\Marketing\Compro\ProductItem::where('active', true)->count();
+        $count_about_total_isactive = \App\Models\Marketing\Digital\AboutUs::where('active', true)->count();
+        $count_about_total = \App\Models\Marketing\Digital\AboutUs::count();
+        $count_article_total_isactive = \App\Models\Marketing\Digital\Article::where('active', true)->count();
+        $count_article_total = \App\Models\Marketing\Digital\Article::count();
+        $count_article_category_total = \App\Models\Marketing\Digital\ArticleCategory::count();
+        $count_award_total_isactive = \App\Models\Marketing\Digital\AwardItem::where('active', true)->count();
+        $count_certificate_total_isactive = \App\Models\Marketing\Digital\CertificateItem::where('active', true)->count();
+        $count_carousel_total_isactive = \App\Models\Marketing\Digital\Carousel::where('active', true)->count();
+        $count_contact_total_isactive = \App\Models\Marketing\Digital\Contact::count();
+        $count_meta_total_isactive = \App\Models\Marketing\Digital\Meta::count();
+        $count_product_total = \App\Models\Marketing\Digital\ProductItem::count();
+        $count_product_total_isactive = \App\Models\Marketing\Digital\ProductItem::where('active', true)->count();
         return [
             Stat::make('About Us Data', "$count_about_total All Data")
                 ->description("$count_about_total_isactive Total Data")

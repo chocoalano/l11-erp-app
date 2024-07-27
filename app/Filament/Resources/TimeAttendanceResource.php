@@ -29,16 +29,8 @@ class TimeAttendanceResource extends Resource implements HasShieldPermissions
             'view_any',
             'create',
             'update',
-            'restore',
-            'restore_any',
-            'replicate',
-            'reorder',
             'delete',
             'delete_any',
-            'force_delete',
-            'force_delete_any',
-            'export_excel',
-            'import_excel',
         ];
     }
 
@@ -54,11 +46,28 @@ class TimeAttendanceResource extends Resource implements HasShieldPermissions
         return $form
             ->schema([
                 Forms\Components\TextInput::make('type')
+                    ->unique()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TimePicker::make('in')
                     ->required(),
                 Forms\Components\TimePicker::make('out')
+                    ->required(),
+                Forms\Components\Select::make('pattern_name')
+                    ->options([
+                        "production"=>"Production",
+                        "warehouse"=>"Warehouse",
+                        "maintenance"=>"Maintenance",
+                        "office"=>"Office",
+                        "customs"=>"Customs",
+                    ])
+                    ->required(),
+                Forms\Components\Select::make('rules')
+                    ->options([
+                        "1"=>"First",
+                        "2"=>"Second",
+                        "3"=>"Thirth",
+                    ])
                     ->required(),
             ]);
     }
@@ -72,6 +81,10 @@ class TimeAttendanceResource extends Resource implements HasShieldPermissions
                 Tables\Columns\TextColumn::make('in')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('out')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('pattern_name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('rules')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

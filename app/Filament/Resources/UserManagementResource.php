@@ -291,20 +291,20 @@ class UserManagementResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
-        ->headerActions([
-            // START FOR BUTTON DOWNLOAD FORMATED IMPORT
-            Tables\Actions\Action::make('Download Excel For Import Data')
-            ->icon('fas-file-excel')
-            ->url(route('download.user.format.excel'))
-            ->openUrlInNewTab(),
-            // END FOR BUTTON DOWNLOAD FORMATED IMPORT
-            // START FOR BUTTON IMPORT
-            Tables\Actions\Action::make('Import From Excel')
-            ->icon('fas-file-import')->form([
-                Forms\Components\FileUpload::make('fileImport')
-                ->storeFiles(false)
-                ->columnSpanFull()
-                ->required(),
+            ->headerActions([
+                // START FOR BUTTON DOWNLOAD FORMATED IMPORT
+                Tables\Actions\Action::make('Download Excel For Import Data')
+                ->icon('fas-file-excel')
+                ->url(route('download.user.format.excel'))
+                ->openUrlInNewTab(),
+                // END FOR BUTTON DOWNLOAD FORMATED IMPORT
+                // START FOR BUTTON IMPORT
+                Tables\Actions\Action::make('Import From Excel')
+                ->icon('fas-file-import')->form([
+                    Forms\Components\FileUpload::make('fileImport')
+                    ->storeFiles(false)
+                    ->columnSpanFull()
+                    ->required(),
             ])
             ->action(function (array $data): void {
                 $file = $data['fileImport'];

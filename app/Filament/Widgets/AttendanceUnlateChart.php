@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\InAttendance;
+use App\Models\Attendance;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
@@ -18,12 +18,12 @@ class AttendanceUnlateChart extends ChartWidget
     {
         $startDayOfMonth = Carbon::now()->firstOfMonth()->format('Y-m-d');
         $endDayOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
-        $data = InAttendance::select(
+        $data = Attendance::select(
             DB::raw("DATE_FORMAT(date, '%Y-%m-%d') as date"),
             DB::raw('count(*) as late_count')
         )
         ->whereBetween('date', [$startDayOfMonth, $endDayOfMonth])
-        ->where('status', 'unlate')
+        ->where('status_in', 'unlate')
         ->groupBy('date')
         ->orderBy('date', 'asc')
         ->get();

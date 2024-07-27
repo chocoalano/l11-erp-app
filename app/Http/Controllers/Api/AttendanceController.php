@@ -78,13 +78,16 @@ class AttendanceController extends Controller
         return ApiResponseClass::sendResponse('Delete Successful','',204);
     }
     public function integratedFromMachine(Request $request){
+        $data = $request->all();
+        // $q = ProcessLargeData::dispatch($data['data']);
+        // dd($q);
         DB::beginTransaction();
         try{
-            $data = $request->all();
             $q = ProcessLargeData::dispatch($data['data']);
             DB::commit();
             return ApiResponseClass::sendResponse($q,'Presence Successful',200);
         }catch(\Exception $ex){
+            dd($ex);
             return ApiResponseClass::rollback($ex);
         }
     }

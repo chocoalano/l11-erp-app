@@ -20,6 +20,8 @@ use Filament\Navigation\NavigationItem;
 use Filament\Navigation\MenuItem;
 use App\Filament\InformationTechnology\Pages\Profile;
 use App\Filament\InformationTechnology\Widgets\SupportItOverview;
+use App\Filament\InformationTechnology\Pages\Dashboard;
+use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 
 class InformationTechnologyPanelProvider extends PanelProvider
 {
@@ -60,15 +62,16 @@ class InformationTechnologyPanelProvider extends PanelProvider
                     'default' => 1,
                     'sm' => 2,
                 ]),
+                FilamentFullCalendarPlugin::make()
             ])
             ->discoverResources(in: app_path('Filament/InformationTechnology/Resources'), for: 'App\\Filament\\InformationTechnology\\Resources')
             ->discoverPages(in: app_path('Filament/InformationTechnology/Pages'), for: 'App\\Filament\\InformationTechnology\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/InformationTechnology/Widgets'), for: 'App\\Filament\\InformationTechnology\\Widgets')
             ->widgets([
-                SupportItOverview::class
+                // SupportItOverview::class
                 // Widgets\AccountWidget::class,
                 // Widgets\FilamentInfoWidget::class,
             ])

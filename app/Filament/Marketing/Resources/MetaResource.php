@@ -3,7 +3,7 @@
 namespace App\Filament\Marketing\Resources;
 
 use App\Filament\Marketing\Resources\MetaResource\Pages;
-use App\Models\Marketing\Compro\Meta;
+use App\Models\Marketing\Digital\Meta;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;

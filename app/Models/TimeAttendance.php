@@ -14,7 +14,9 @@ class TimeAttendance extends Model
     protected $fillable = [
         'type',
         'in',
-        'out'
+        'out',
+        'pattern_name',
+        'rules'
     ];
 
     public function schedule_group_attendance(): HasMany

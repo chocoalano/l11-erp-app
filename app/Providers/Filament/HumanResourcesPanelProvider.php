@@ -22,6 +22,8 @@ use Filament\Navigation\MenuItem;
 use App\Filament\Pages\Profile;
 use App\Filament\Widgets\AttendanceLateChart;
 use App\Filament\Widgets\AttendanceUnlateChart;
+use App\Filament\Widgets\OrganizationLateChart;
+use App\Filament\Widgets\OrganizationUnlateChart;
 
 class HumanResourcesPanelProvider extends PanelProvider
 {
@@ -75,7 +77,9 @@ class HumanResourcesPanelProvider extends PanelProvider
                 StatsUserOverview::class,
                 AttendanceLateChart::class,
                 AttendanceUnlateChart::class,
-                UsersChart::class,
+                OrganizationLateChart::class,
+                OrganizationUnlateChart::class,
+                // UsersChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

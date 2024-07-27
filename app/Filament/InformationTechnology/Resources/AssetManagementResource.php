@@ -4,8 +4,9 @@ namespace App\Filament\InformationTechnology\Resources;
 
 use App\Filament\InformationTechnology\Resources\AssetManagementResource\Pages;
 use App\Filament\InformationTechnology\Resources\AssetManagementResource\RelationManagers;
-use App\Models\AssetManagement;
+use App\Models\IT\AssetManagement;
 use App\Models\User;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Malzariey\FilamentDaterangepickerFilter\Filters\DateRangeFilter;
 
-class AssetManagementResource extends Resource
+class AssetManagementResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = AssetManagement::class;
 

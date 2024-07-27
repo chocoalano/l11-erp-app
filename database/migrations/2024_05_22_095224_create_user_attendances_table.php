@@ -11,29 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('in_attendances', function (Blueprint $table) {
+        Schema::create('attendances', function (Blueprint $table) {
             $table->id();
             $table->string('nik')->nullable();
             $table->bigInteger('schedule_group_attendances_id')->nullable();
-            $table->float('lat')->nullable();
-            $table->float('lng')->nullable();
             $table->date('date')->nullable();
-            $table->time('time')->nullable();
-            $table->string('photo')->nullable();
-            $table->enum('status', ['late', 'unlate'])->nullable();
-            $table->timestamps();
-        });
-        Schema::create('out_attendances', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('in_attendance_id')->foreign('in_attendance_id')->references('id')->on('in_attendances')->onDelete('cascade');
-            $table->string('nik')->nullable();
-            $table->bigInteger('schedule_group_attendances_id')->nullable();
-            $table->float('lat')->nullable();
-            $table->float('lng')->nullable();
-            $table->date('date')->nullable();
-            $table->time('time')->nullable();
-            $table->string('photo')->nullable();
-            $table->enum('status', ['late', 'unlate'])->nullable();
+            $table->float('lat_in')->nullable();
+            $table->float('lng_in')->nullable();
+            $table->time('time_in')->nullable();
+            $table->string('photo_in')->nullable();
+            $table->enum('status_in', ['late', 'unlate'])->nullable();
+            $table->float('lat_out')->nullable();
+            $table->float('lng_out')->nullable();
+            $table->time('time_out')->nullable();
+            $table->string('photo_out')->nullable();
+            $table->enum('status_out', ['late', 'unlate'])->nullable();
             $table->timestamps();
         });
     }
@@ -43,7 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('in_attendances');
-        Schema::dropIfExists('out_attendances');
+        Schema::dropIfExists('attendances');
     }
 };

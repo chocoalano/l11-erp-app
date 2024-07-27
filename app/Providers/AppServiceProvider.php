@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use BezhanSalleh\FilamentShield\Facades\FilamentShield;
 use Illuminate\Support\ServiceProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
@@ -52,5 +53,11 @@ class AppServiceProvider extends ServiceProvider
                 'marketing' => 'MIS',
             ]);
         });
+        FilamentShield::configurePermissionIdentifierUsing(
+            fn($resource) => str($resource::getModel())
+                ->afterLast('\\')
+                ->lower()
+                ->toString()
+        );
     }
 }

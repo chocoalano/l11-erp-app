@@ -3,7 +3,7 @@
 namespace App\Filament\Marketing\Resources;
 
 use App\Filament\Marketing\Resources\ValueResource\Pages;
-use App\Models\Marketing\Compro\Value;
+use App\Models\Marketing\Digital\Value;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;

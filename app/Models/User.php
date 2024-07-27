@@ -27,7 +27,9 @@ use Spatie\Permission\Models\Role;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes, HasRoles, HasPanelShield;
+    use HasFactory, Notifiable, SoftDeletes;
+    use HasRoles;
+    use HasPanelShield;
     use HasApiTokens;
     protected $fillable = [
         'name',

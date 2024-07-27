@@ -4,12 +4,23 @@ namespace App\Filament\Resources\ScheduleGroupAttendanceResource\Pages;
 
 use App\Filament\Resources\ScheduleGroupAttendanceResource;
 use App\Models\ScheduleGroupAttendance;
+use DateInterval;
+use DatePeriod;
 use DateTime;
 use Filament\Actions;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\ManageRecords;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\GroupAttendance;
+use App\Models\TimeAttendance;
+use Filament\Actions\ActionGroup;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 
 class ManageScheduleGroupAttendances extends ManageRecords
 {
@@ -26,41 +37,341 @@ class ManageScheduleGroupAttendances extends ManageRecords
 
     protected function getHeaderActions(): array
     {
+        $startDate = Carbon::now()->startOfWeek();
+        $endDate = $startDate->copy()->endOfWeek();
+        $optionsHariSeninSampaiMinggu = [];
+        for ($date = $startDate; $date <= $endDate; $date->addDay()) {
+            $optionsHariSeninSampaiMinggu[$date->format('l')] = $date->format('l'); // 'l' akan mengembalikan nama hari penuh, seperti "Monday"
+        }
         return [
-            Actions\CreateAction::make()
-            ->mutateFormDataUsing(function (array $data): array {
-                $dates = explode(" - ", $data['date']);
-                if (count($dates) !== 2) {
-                    throw new \Exception("Input tanggal harus berisi dua tanggal yang dipisahkan dengan ' - '");
-                }
-                list($start_date, $end_date) = $dates;
-                $start_date = $this->formatDate($start_date);
-                $end_date = $this->formatDate($end_date);
+            ActionGroup::make([
+                Actions\Action::make('create_schedule_production')
+                ->color('info')
+                ->outlined()
+                ->form([
+                    Section::make('Range Date Setup')
+                        ->schema([
+                            DatePicker::make('start')->required(),
+                            DatePicker::make('end')->required(),
+                        ])->columns(2),
+                    Repeater::make('group_setup')
+                        ->schema([
+                            Select::make('group')
+                                ->options(GroupAttendance::where('pattern_name', 'production')->get()->pluck('name', 'id'))
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                            Select::make('time')
+                                ->label('Select the previous shift')
+                                ->options(TimeAttendance::where('pattern_name', 'production')->get()->pluck('type', 'id'))
+                                ->required(),
+                            Select::make('config')
+                                ->options([
+                                    'rolling' => 'Rolling',
+                                ])
+                                ->required(),
+                        ])
+                        ->columns(3)
+                ])
+                ->action(function (array $data) {
+                    $startDate = new DateTime($data['start']);
+                    $endDate = new DateTime($data['end']);
+                    $interval = new DateInterval('P1D');
+                    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                    $dates = [];
+                    foreach ($period as $date) {
+                        $dates[] = $date->format('Y-m-d');
+                    }
+                    $insert_data = [];
+                    foreach ($data['group_setup'] as $k) {
+                        $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
+                        $insert_data[] = $hasilPergantian;
+                    }
+                    $mergedArray = array_merge(...$insert_data);
+                    $save = ScheduleGroupAttendance::insert($mergedArray);
+                    return $save;
+                }),
+                Actions\Action::make('create_schedule_maintenance')
+                ->color('danger')
+                ->outlined()
+                ->form([
+                    Section::make('Range Date Setup')
+                        ->schema([
+                            DatePicker::make('start')->required(),
+                            DatePicker::make('end')->required(),
+                        ])->columns(2),
+                    Repeater::make('group_setup')
+                        ->schema([
+                            Select::make('group')
+                                ->options(GroupAttendance::where('pattern_name', 'maintenance')->get()->pluck('name', 'id'))
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                            Select::make('time')
+                                ->label('Select the previous shift')
+                                ->options(TimeAttendance::where('pattern_name', 'maintenance')->get()->pluck('type', 'id'))
+                                ->required(),
+                            Select::make('config')
+                                ->options([
+                                    'rolling' => 'Rolling',
+                                ])
+                                ->required(),
+                            Select::make('day_off')
+                                ->options($optionsHariSeninSampaiMinggu)
+                                ->required(),
+                        ])
+                        ->columns(4)
+                ])
+                ->action(function (array $data) {
+                    // Inisialisasi tanggal mulai dan akhir
+                    $startDate = Carbon::parse($data['start']);
+                    $endDate = Carbon::parse($data['end']);
+                    $interval = new DateInterval('P1D');
+                    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                    $dates = [];
+                    foreach ($period as $date) {
+                        $dates[] = $date->format('Y-m-d');
+                    }
+                    $insert_data = [];
+                    foreach ($data['group_setup'] as $k) {
+                        $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $k['day_off']);
+                        $insert_data[] = $hasilPergantian;
+                    }
+                    $mergedArray = array_merge(...$insert_data);
+                    $save = ScheduleGroupAttendance::insert($mergedArray);
+                    return $save;
+                }),
+                Actions\Action::make('create_schedule_warehouse')
+                ->color('warning')
+                ->outlined()
+                ->form([
+                    Section::make('Range Date Setup')
+                        ->schema([
+                            DatePicker::make('start')->required(),
+                            DatePicker::make('end')->required(),
+                        ])->columns(2),
+                    Repeater::make('group_setup')
+                        ->schema([
+                            Select::make('group')
+                                ->options(GroupAttendance::where('pattern_name', 'warehouse')->get()->pluck('name', 'id'))
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                            Select::make('time')
+                                ->label('Select the previous shift')
+                                ->options(TimeAttendance::where('pattern_name', 'warehouse')->get()->pluck('type', 'id'))
+                                ->required(),
+                            Select::make('config')
+                                ->options([
+                                    'rolling' => 'Rolling',
+                                ])
+                                ->required(),
+                        ])
+                        ->columns(3)
+                ])
+                ->action(function (array $data) {
+                    $startDate = new DateTime($data['start']);
+                    $endDate = new DateTime($data['end']);
+                    $interval = new DateInterval('P1D');
+                    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                    $dates = [];
+                    foreach ($period as $date) {
+                        $dates[] = $date->format('Y-m-d');
+                    }
+                    $insert_data = [];
+                    foreach ($data['group_setup'] as $k) {
+                        $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
+                        $insert_data[] = $hasilPergantian;
+                    }
+                    $mergedArray = array_merge(...$insert_data);
+                    $save = ScheduleGroupAttendance::insert($mergedArray);
+                    return $save;
+                }),
+                Actions\Action::make('create_schedule_office')
+                ->color('primary')
+                ->outlined()
+                ->form([
+                    Section::make('Range Date Setup')
+                        ->schema([
+                            DatePicker::make('start')->required(),
+                            DatePicker::make('end')->required(),
+                        ])->columns(2),
+                    Repeater::make('group_setup')
+                        ->schema([
+                            Select::make('group')
+                                ->options(GroupAttendance::where('pattern_name', 'office')->get()->pluck('name', 'id'))
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                            Select::make('time')
+                                ->label('Select the previous shift')
+                                ->options(TimeAttendance::where('pattern_name', 'office')->get()->pluck('type', 'id'))
+                                ->required(),
+                            Select::make('config')
+                                ->options([
+                                    'continue' => 'Continue',
+                                ])
+                                ->required(),
+                        ])
+                        ->columns(3)
+                ])
+                ->action(function (array $data) {
+                    $startDate = new DateTime($data['start']);
+                    $endDate = new DateTime($data['end']);
+                    $interval = new DateInterval('P1D');
+                    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                    $dates = [];
+                    foreach ($period as $date) {
+                        $dates[] = $date->format('Y-m-d');
+                    }
+                    $insert_data = [];
+                    foreach ($data['group_setup'] as $k) {
+                        $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
+                        $insert_data[] = $hasilPergantian;
+                    }
+                    $mergedArray = array_merge(...$insert_data);
+                    $save = ScheduleGroupAttendance::insert($mergedArray);
+                    return $save;
+                }),
+            ])
+            ->label('More create schedule actions')
+            ->icon('heroicon-c-plus-circle')
+            ->color('primary')
+            ->button()
+        ];
+    }
 
-                $date_array = [];
-                $start = new Carbon($start_date);
-                $end = new Carbon($end_date);
-                for ($date = $start; $date->lte($end); $date->addDay()) {
-                    $date_array[] = $date->format('Y-m-d');
+    public function gantiShiftIdPadaSenin($tanggalArray, int $currentShift, int $groupId, $config, $dayoff) {
+        $hasil = [];
+        $currentShiftId = $currentShift;
+        if ($config === 'rolling' && !is_null($dayoff)) {
+            $currentWeek = null;
+            $cekGroup = GroupAttendance::find($groupId);
+            switch ($dayoff) {
+                case 'Monday':
+                    $fixedDayOff = Carbon::MONDAY;
+                    break;
+                case 'Tuesday':
+                    $fixedDayOff = Carbon::TUESDAY;
+                    break;
+                case 'Wednesday':
+                    $fixedDayOff = Carbon::WEDNESDAY;
+                    break;
+                case 'Thursday':
+                    $fixedDayOff = Carbon::THURSDAY;
+                    break;
+                case 'Friday':
+                    $fixedDayOff = Carbon::FRIDAY;
+                    break;
+                case 'Saturday':
+                    $fixedDayOff = Carbon::SATURDAY;
+                    break;
+                case 'Sunday':
+                    $fixedDayOff = Carbon::SUNDAY;
+                    break;
+                default:
+                    $fixedDayOff = Carbon::MONDAY;
+                    break;
+            }
+            $filteredArray = array_filter($tanggalArray, function($date) use ($fixedDayOff){
+                return Carbon::parse($date)->dayOfWeek !== $fixedDayOff;
+            });
+            $filteredArray = array_values($filteredArray);
+            foreach ($filteredArray as $tanggal) {
+                $weekOfYear = date('W', strtotime($tanggal));
+                if ($currentWeek !== $weekOfYear) {
+                    $currentWeek = $weekOfYear;
+                    $findTime = TimeAttendance::where('pattern_name', $cekGroup->pattern_name)
+                        ->orderByDesc('rules')
+                        ->get();
+                    foreach ($findTime as $k) {
+                        if($k['rules'] === 1){
+                            $shift1 = $k['id'];
+                        }elseif($k['rules'] === 2){
+                            $shift2 = $k['id'];
+                        }
+                    }
+                    if($currentShift === $shift1){
+                        $lawanShift = $shift2;
+                    }elseif($currentShift === $shift2){
+                        $lawanShift = $shift1;
+                    }
+                    $currentShiftId = ($currentShiftId === $currentShift) ? $lawanShift : $currentShift;
                 }
-
-                $data_return = [];
-                foreach ($date_array as $k) {
-                    $data_return[] = [
-                        'group_attendance_id' => $data['group_attendance_id'],
-                        'time_attendance_id' => $data['time_attendance_id'],
-                        'date' => $k,
+                $hasil[] = [
+                    'date' => $tanggal,
+                    'time_attendance_id' => $currentShiftId,
+                    'group_attendance_id' => $groupId
+                ];
+            }
+        }elseif ($config === 'rolling' && is_null($dayoff)) {
+            $currentWeek = null;
+            $cekGroup = GroupAttendance::find($groupId);
+            $filteredDates = array_filter($tanggalArray, function($date) {
+                $dayOfWeek = date('N', strtotime($date));
+                return $dayOfWeek < 7; // 6 is Saturday, 7 is Sunday
+            });
+            foreach ($filteredDates as $tanggal) {
+                $weekOfYear = date('W', strtotime($tanggal));
+                if ($currentWeek !== $weekOfYear) {
+                    $currentWeek = $weekOfYear;
+                    $findTime = TimeAttendance::where('pattern_name', $cekGroup->pattern_name)
+                        ->orderByDesc('rules')
+                        ->get();
+                    foreach ($findTime as $k) {
+                        if($k['rules'] === 1){
+                            $shift1 = $k['id'];
+                        }elseif($k['rules'] === 2){
+                            $shift2 = $k['id'];
+                        }
+                    }
+                    if($currentShift === $shift1){
+                        $lawanShift = $shift2;
+                    }elseif($currentShift === $shift2){
+                        $lawanShift = $shift1;
+                    }
+                    $currentShiftId = ($currentShiftId === $currentShift) ? $lawanShift : $currentShift;
+                }
+                $hasil[] = [
+                    'date' => $tanggal,
+                    'time_attendance_id' => $currentShiftId,
+                    'group_attendance_id' => $groupId
+                ];
+            }
+        }else{
+            if($currentShift === 5 && $groupId === 3){ //office staff
+                $filteredDates = array_filter($tanggalArray, function($date) {
+                    $dayOfWeek = date('N', strtotime($date));
+                    return $dayOfWeek < 6; // 6 is Saturday, 7 is Sunday
+                });
+                foreach ($filteredDates as $tanggal) {
+                    $hasil[] = [
+                        'date' => $tanggal,
+                        'time_attendance_id' => $currentShiftId,
+                        'group_attendance_id' => $groupId
                     ];
                 }
-                return $data_return;
-            })
-            ->using(function (array $data): Model {
-                foreach ($data as $entry) {
-                    $model = new ScheduleGroupAttendance($entry);
-                    $model->save();
+            }elseif($currentShift === 11 && $groupId === 4){ //office nonstaff
+                $filteredDates = array_filter($tanggalArray, function($date) {
+                    $dayOfWeek = date('N', strtotime($date));
+                    return $dayOfWeek < 7; // 6 is Saturday, 7 is Sunday
+                });
+                foreach ($filteredDates as $tanggal) {
+                    $hasil[] = [
+                        'date' => $tanggal,
+                        'time_attendance_id' => $currentShiftId,
+                        'group_attendance_id' => $groupId
+                    ];
                 }
-                return $model;
-            }),
-        ];
+            }else{
+                Notification::make()
+                    ->title('Saved unsuccessfully')
+                    ->icon('heroicon-s-x-circle')
+                    ->iconColor('danger')
+                    ->body('The data you input does not match the agreed policy standards!')
+                    ->send();
+            }
+        }
+        return $hasil;
     }
 }

@@ -4,7 +4,7 @@ namespace App\Filament\Marketing\Resources;
 
 use App\Filament\Marketing\Resources\ReasonResource\Pages;
 use App\Filament\Marketing\Resources\ReasonResource\RelationManagers;
-use App\Models\Marketing\Compro\Reason;
+use App\Models\Marketing\Digital\Reason;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;

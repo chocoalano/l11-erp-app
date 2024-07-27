@@ -4,7 +4,7 @@ namespace App\Filament\Marketing\Resources;
 
 use App\Filament\Marketing\Resources\CertificateResource\Pages;
 use App\Filament\Marketing\Resources\CertificateResource\RelationManagers;
-use App\Models\Marketing\Compro\CertificateItem;
+use App\Models\Marketing\Digital\CertificateItem;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;

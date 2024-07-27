@@ -2,17 +2,16 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\InAttendance;
+use App\Models\Attendance;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
-use Flowframe\Trend\Trend;
-use Flowframe\Trend\TrendValue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AttendanceLateChart extends ChartWidget
 {
     use HasWidgetShield;
+    protected static string $color = 'danger';
     protected static ?string $heading = 'Attendance Is Late';
     protected static ?int $sort = 1;
 
@@ -20,12 +19,12 @@ class AttendanceLateChart extends ChartWidget
     {
         $startDayOfMonth = Carbon::now()->firstOfMonth()->format('Y-m-d');
         $endDayOfMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
-        $data = InAttendance::select(
+        $data = Attendance::select(
             DB::raw("DATE_FORMAT(date, '%Y-%m-%d') as date"),
             DB::raw('count(*) as late_count')
         )
         ->whereBetween('date', [$startDayOfMonth, $endDayOfMonth])
-        ->where('status', 'late')
+        ->where('status_in', 'late')
         ->groupBy('date')
         ->orderBy('date', 'asc')
         ->get();

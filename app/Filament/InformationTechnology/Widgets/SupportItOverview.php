@@ -18,7 +18,7 @@ class SupportItOverview extends BaseWidget
         $count_support_total_isunurgent = \App\Models\Task::where('urgent', false)->where('progress', '<', 100)->count();
         $count_support_total_compleated = \App\Models\Task::where('progress', 100)->count();
         $count_support_total_uncompleated = \App\Models\Task::where('progress', '<', 100)->count();
-        $count_all_assets = \App\Models\AssetManagement::count();
+        $count_all_assets = \App\Models\IT\AssetManagement::count();
         return [
             Stat::make('Support Urgent Data', "$count_support_urgent_total All Data")
                 ->description("$count_support_total_isurgent Support Uncompleated")

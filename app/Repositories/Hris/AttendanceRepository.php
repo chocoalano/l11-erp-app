@@ -4,7 +4,7 @@ namespace App\Repositories\Hris;
 
 use App\Classes\MyHelpers;
 use App\Interfaces\Hris\AttendanceInterface;
-use App\Models\InAttendance;
+use App\Models\Attendance;
 
 class AttendanceRepository implements AttendanceInterface
 {
@@ -12,7 +12,7 @@ class AttendanceRepository implements AttendanceInterface
     /**
      * Create a new class instance.
      */
-    public function __construct(InAttendance $model)
+    public function __construct(Attendance $model)
     {
         $this->model = $model;
     }
@@ -45,64 +45,64 @@ class AttendanceRepository implements AttendanceInterface
      */
     public function store($data)
     {
-        $myHelpers = new MyHelpers();
-        $validate = $myHelpers->cekStatusTelatAbsen($data['schedule_group_attendances_id'], $data['time'], $data['flag']);
-        $status = $validate['status'];
-        if ($data['flag'] === 'in') {
-            $q = $this->model::updateOrCreate(
-                [
-                    'nik' => $data['nik'],
-                    'date' => $data['date'],
-                    'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
-                ],
-                [
-                    'nik' => $data['nik'],
-                    'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
-                    'lat' => $data['lat'],
-                    'lng' => $data['lng'],
-                    'date' => $data['date'],
-                    'time' => $data['time'],
-                    // 'photo' => $data['photo'],
-                    'status' => $status,
-                ]
-            );
+        // $myHelpers = new MyHelpers();
+        // $validate = $myHelpers->cekStatusTelatAbsen($data['schedule_group_attendances_id'], $data['time'], $data['flag']);
+        // $status = $validate['status'];
+        // if ($data['flag'] === 'in') {
+        //     $q = $this->model::updateOrCreate(
+        //         [
+        //             'nik' => $data['nik'],
+        //             'date' => $data['date'],
+        //             'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
+        //         ],
+        //         [
+        //             'nik' => $data['nik'],
+        //             'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
+        //             'lat' => $data['lat'],
+        //             'lng' => $data['lng'],
+        //             'date' => $data['date'],
+        //             'time' => $data['time'],
+        //             // 'photo' => $data['photo'],
+        //             'status' => $status,
+        //         ]
+        //     );
 
-            $q->attendance()->updateOrCreate(
-                [
-                    'nik' => $data['nik'],
-                    'date' => $data['date'],
-                    'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
-                ],
-                [
-                    'nik' => $data['nik'],
-                    'date' => $data['date'],
-                    'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
-                ]
-            );
-        }else{
-            $q=$this->model::where('nik', $data['nik'])
-                ->where('date', $data['date'])
-                ->where('schedule_group_attendances_id', $data['schedule_group_attendances_id'])
-                ->first();
-            $q->attendance()->updateOrCreate(
-                [
-                    'nik' => $data['nik'],
-                    'date' => $data['date'],
-                    'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
-                ],
-                [
-                    'nik' => $data['nik'],
-                    'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
-                    'lat' => $data['lat'],
-                    'lng' => $data['lng'],
-                    'date' => $data['date'],
-                    'time' => $data['time'],
-                    // 'photo' => $data['photo'],
-                    'status' => $status,
-                ]
-            );
-        }
-        return $q;
+        //     $q->attendance()->updateOrCreate(
+        //         [
+        //             'nik' => $data['nik'],
+        //             'date' => $data['date'],
+        //             'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
+        //         ],
+        //         [
+        //             'nik' => $data['nik'],
+        //             'date' => $data['date'],
+        //             'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
+        //         ]
+        //     );
+        // }else{
+        //     $q=$this->model::where('nik', $data['nik'])
+        //         ->where('date', $data['date'])
+        //         ->where('schedule_group_attendances_id', $data['schedule_group_attendances_id'])
+        //         ->first();
+        //     $q->attendance()->updateOrCreate(
+        //         [
+        //             'nik' => $data['nik'],
+        //             'date' => $data['date'],
+        //             'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
+        //         ],
+        //         [
+        //             'nik' => $data['nik'],
+        //             'schedule_group_attendances_id' => $data['schedule_group_attendances_id'],
+        //             'lat' => $data['lat'],
+        //             'lng' => $data['lng'],
+        //             'date' => $data['date'],
+        //             'time' => $data['time'],
+        //             // 'photo' => $data['photo'],
+        //             'status' => $status,
+        //         ]
+        //     );
+        // }
+        // return $q;
     }
 
     /**
@@ -110,7 +110,7 @@ class AttendanceRepository implements AttendanceInterface
      */
     public function update($data, $id)
     {
-        $q = InAttendance::find($id);
+        $q = Attendance::find($id);
         $q->lat = $data['in']['lat'];
         $q->lng = $data['in']['lng'];
         $q->time = $data['in']['time'];
