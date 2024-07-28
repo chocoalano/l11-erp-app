@@ -14,7 +14,6 @@
         "filament/notifications": "^3.2",
         "flowframe/laravel-trend": "^0.2.0",
         "laravel/framework": "^11.0",
-        "laravel/pulse": "^1.2",
         "laravel/reverb": "@beta",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
@@ -22,7 +21,6 @@
         "mokhosh/filament-kanban": "^2.8",
         "owenvoke/blade-fontawesome": "^2.6",
         "phpoffice/phpspreadsheet": "^2.1",
-        "saade/filament-fullcalendar": "^3.2",
         "spatie/eloquent-sortable": "^4.3"
     },
     "require-dev": {

@@ -6,7 +6,6 @@ use App\Filament\Auth\Login;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -16,12 +15,9 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Navigation\NavigationItem;
 use Filament\Navigation\MenuItem;
 use App\Filament\InformationTechnology\Pages\Profile;
-use App\Filament\InformationTechnology\Widgets\SupportItOverview;
 use App\Filament\InformationTechnology\Pages\Dashboard;
-use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 
 class InformationTechnologyPanelProvider extends PanelProvider
 {
@@ -61,8 +57,7 @@ class InformationTechnologyPanelProvider extends PanelProvider
                 ->resourceCheckboxListColumns([
                     'default' => 1,
                     'sm' => 2,
-                ]),
-                FilamentFullCalendarPlugin::make()
+                ])
             ])
             ->discoverResources(in: app_path('Filament/InformationTechnology/Resources'), for: 'App\\Filament\\InformationTechnology\\Resources')
             ->discoverPages(in: app_path('Filament/InformationTechnology/Pages'), for: 'App\\Filament\\InformationTechnology\\Pages')

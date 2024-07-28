@@ -2,12 +2,8 @@
  
 namespace App\Filament\InformationTechnology\Pages;
 
-use App\Filament\InformationTechnology\Widgets\CalendarWidget;
 use App\Filament\InformationTechnology\Widgets\SupportItOverview;
-use Filament\Actions\Action;
-use Filament\Actions\ActionGroup;
 use Filament\Pages\Dashboard\Concerns\HasFiltersAction;
-use Filament\Support\Enums\ActionSize;
  
 class Dashboard extends \Filament\Pages\Dashboard
 {
@@ -22,7 +18,6 @@ class Dashboard extends \Filament\Pages\Dashboard
     {
         return [
             SupportItOverview::class,
-            CalendarWidget::class,
         ];
     }
 }

@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserAttendanceResource\Pages;
+use App\Filament\Resources\AttendanceResource\Pages;
 use App\Models\Attendance;
-use App\Models\OutAttendance;
 use App\Models\TimeAttendance;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\DatePicker;
@@ -146,7 +145,7 @@ class AttendanceResource extends Resource implements HasShieldPermissions
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageUserAttendances::route('/'),
+            'index' => Pages\ManageAttendances::route('/'),
         ];
     }
 }
