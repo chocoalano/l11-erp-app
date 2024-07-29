@@ -3,8 +3,8 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\AboutUsInterface;
-use App\Models\Marketing\Compro\AboutUs;
-use App\Models\Marketing\Compro\Meta;
+use App\Models\Marketing\Digital\Meta;
+use App\Models\Marketing\Digital\AboutUs;
 
 class AboutUsRepository implements AboutUsInterface
 {

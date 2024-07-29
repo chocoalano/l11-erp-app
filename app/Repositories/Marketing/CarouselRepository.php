@@ -3,7 +3,7 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\CarouselInterface;
-use App\Models\Marketing\Compro\Carousel;
+use App\Models\Marketing\Digital\Carousel;
 
 class CarouselRepository implements CarouselInterface
 {

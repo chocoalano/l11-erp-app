@@ -3,7 +3,7 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\ValuesInterface;
-use App\Models\Marketing\Compro\Value;
+use App\Models\Marketing\Digital\Value;
 
 class ValuesRepository implements ValuesInterface
 {

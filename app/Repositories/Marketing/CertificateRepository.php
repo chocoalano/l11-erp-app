@@ -3,8 +3,8 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\CertificateInterface;
-use App\Models\Marketing\Compro\Certificate;
-use App\Models\Marketing\Compro\Meta;
+use App\Models\Marketing\Digital\Certificate;
+use App\Models\Marketing\Digital\Meta;
 
 class CertificateRepository implements CertificateInterface
 {

@@ -3,7 +3,7 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\MetaSeoInterface;
-use App\Models\Marketing\Compro\Meta;
+use App\Models\Marketing\Digital\Meta;
 
 class MetaSeoRepository implements MetaSeoInterface
 {

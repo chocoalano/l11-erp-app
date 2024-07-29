@@ -3,8 +3,8 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\SosmedInterface;
-use App\Models\Marketing\Compro\Contact;
-use App\Models\Marketing\Compro\Sosmed;
+use App\Models\Marketing\Digital\Contact;
+use App\Models\Marketing\Digital\Sosmed;
 
 class SosmedRepository implements SosmedInterface
 {

@@ -3,8 +3,8 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\AwardInterface;
-use App\Models\Marketing\Compro\Award;
-use App\Models\Marketing\Compro\Meta;
+use App\Models\Marketing\Digital\Award;
+use App\Models\Marketing\Digital\Meta;
 
 class AwardRepository implements AwardInterface
 {

@@ -3,7 +3,7 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\ArticleInterface;
-use App\Models\Marketing\Compro\Article;
+use App\Models\Marketing\Digital\Article;
 
 class ArticleRepository implements ArticleInterface
 {

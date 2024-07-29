@@ -3,8 +3,8 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\PartnerInterface;
-use App\Models\Marketing\Compro\Meta;
-use App\Models\Marketing\Compro\Partner;
+use App\Models\Marketing\Digital\Meta;
+use App\Models\Marketing\Digital\Partner;
 
 class PartnerRepository implements PartnerInterface
 {

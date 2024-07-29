@@ -3,8 +3,8 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\ProductInterface;
-use App\Models\Marketing\Compro\Meta;
-use App\Models\Marketing\Compro\Product;
+use App\Models\Marketing\Digital\Meta;
+use App\Models\Marketing\Digital\Product;
 
 class ProductRepository implements ProductInterface
 {

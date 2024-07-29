@@ -3,7 +3,7 @@
 namespace App\Repositories\Marketing;
 
 use App\Interfaces\Marketing\ReasonInterface;
-use App\Models\Marketing\Compro\Reason;
+use App\Models\Marketing\Digital\Reason;
 
 class ReasonRepository implements ReasonInterface
 {
