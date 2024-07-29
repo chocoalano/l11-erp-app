@@ -51,32 +51,32 @@ class ArticleResource extends Resource implements HasShieldPermissions
         return $form
             ->schema([
                 Forms\Components\FileUpload::make('cover_image')
-                ->image()
-                ->directory('cover-article')
-                ->columnSpanFull()
-                ->required(),
+                    ->image()
+                    ->directory('cover-article')
+                    ->columnSpanFull()
+                    ->required(),
                 Forms\Components\TextInput::make('title')
-                ->required(),
+                    ->required(),
                 Forms\Components\TagsInput::make('tags')
-                ->required(),
+                    ->required(),
                 Forms\Components\Select::make('article_category_id')
-                ->label('Category')
-                ->relationship(name: 'category', titleAttribute: 'name')
-                ->createOptionForm([
-                    Forms\Components\TextInput::make('name')
-                        ->required(),
-                ]),
+                    ->label('Category')
+                    ->relationship(name: 'category', titleAttribute: 'name')
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->required(),
+                    ]),
                 Forms\Components\Toggle::make('active'),
                 Forms\Components\TagsInput::make('meta_keywords')
-                ->required(),
+                    ->required(),
                 Forms\Components\TextInput::make('meta_title'),
                 Forms\Components\Textarea::make('meta_descriptions')
-                ->rows(10)
-                ->cols(20)
-                ->columnSpanFull(),
+                    ->rows(10)
+                    ->cols(20)
+                    ->columnSpanFull(),
                 Forms\Components\RichEditor::make('content')
-                ->columnSpanFull()
-                ->required(),
+                    ->columnSpanFull()
+                    ->required(),
             ]);
     }
 

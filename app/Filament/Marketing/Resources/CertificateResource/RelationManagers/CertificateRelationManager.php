@@ -21,6 +21,17 @@ class CertificateRelationManager extends RelationManager
                 Forms\Components\TextInput::make('title')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\FileUpload::make('cover_image')
+                    ->image()
+                    ->directory('certificates')
+                    ->columnSpanFull(),
+                Forms\Components\TextInput::make('title')
+                        ->required(),
+                Forms\Components\Toggle::make('active')
+                    ->columnSpanFull(),
+                Forms\Components\Textarea::make('description')
+                    ->columnSpanFull()
+                    ->required(),
             ]);
     }
 
@@ -30,6 +41,17 @@ class CertificateRelationManager extends RelationManager
             ->recordTitleAttribute('title')
             ->columns([
                 Tables\Columns\TextColumn::make('title'),
+                Tables\Columns\ImageColumn::make('cover_image'),
+                Tables\Columns\TextColumn::make('active')
+                    ->badge()
+                    ->label('Status')
+                    ->formatStateUsing(function ($state) {
+                        return $state ? 'Active' : 'Inactive';
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        '0' => 'success',
+                        '1' => 'danger',
+                    }),
             ])
             ->filters([
                 //
