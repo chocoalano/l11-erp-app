@@ -68,13 +68,13 @@ class AwardResource extends Resource implements HasShieldPermissions
                         ->required(),
                     Forms\Components\Toggle::make('active')
                     ->columnSpanFull(),
-                    Forms\Components\TextArea::make('description')
+                    Forms\Components\Textarea::make('description')
                     ->columnSpanFull()
                     ->required(),
                 ]),
                 Forms\Components\Toggle::make('active')
                 ->columnSpanFull(),
-                Forms\Components\TextArea::make('description')
+                Forms\Components\Textarea::make('description')
                 ->columnSpanFull()
                 ->required(),
             ]);

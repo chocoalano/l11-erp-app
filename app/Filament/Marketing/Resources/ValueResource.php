@@ -47,7 +47,7 @@ class ValueResource extends Resource implements HasShieldPermissions
                 ->required(),
                 Forms\Components\TextInput::make('subtitle')
                 ->required(),
-                Forms\Components\TextArea::make('description')
+                Forms\Components\Textarea::make('description')
                 ->required(),
                 Forms\Components\Toggle::make('active')->required(),
                 Forms\Components\FileUpload::make('image')
