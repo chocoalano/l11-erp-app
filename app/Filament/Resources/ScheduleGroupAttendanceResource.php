@@ -10,11 +10,13 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Carbon;
 use Malzariey\FilamentDaterangepickerFilter\Fields\DateRangePicker;
+use Malzariey\FilamentDaterangepickerFilter\Filters\DateRangeFilter;
 
 class ScheduleGroupAttendanceResource extends Resource implements HasShieldPermissions
 {
@@ -86,7 +88,7 @@ class ScheduleGroupAttendanceResource extends Resource implements HasShieldPermi
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('group_attendance.name')
-                    ->numeric()
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('time.type')
                     ->numeric()
@@ -104,7 +106,12 @@ class ScheduleGroupAttendanceResource extends Resource implements HasShieldPermi
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                DateRangeFilter::make('date'),
+                SelectFilter::make('filterByGroupAttendance')
+                ->relationship('group_attendance', 'name')
+                ->searchable()
+                ->preload()
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
