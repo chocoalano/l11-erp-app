@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Auth\Login;
+use App\Filament\InformationTechnology\Pages\AdministrationHR;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -18,6 +19,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\MenuItem;
 use App\Filament\InformationTechnology\Pages\Profile;
 use App\Filament\InformationTechnology\Pages\Dashboard;
+use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 
 class InformationTechnologyPanelProvider extends PanelProvider
 {
@@ -57,12 +59,13 @@ class InformationTechnologyPanelProvider extends PanelProvider
                 ->resourceCheckboxListColumns([
                     'default' => 1,
                     'sm' => 2,
-                ])
+                ]),
             ])
             ->discoverResources(in: app_path('Filament/InformationTechnology/Resources'), for: 'App\\Filament\\InformationTechnology\\Resources')
             ->discoverPages(in: app_path('Filament/InformationTechnology/Pages'), for: 'App\\Filament\\InformationTechnology\\Pages')
             ->pages([
                 Dashboard::class,
+                AdministrationHR::class,
             ])
             ->discoverWidgets(in: app_path('Filament/InformationTechnology/Widgets'), for: 'App\\Filament\\InformationTechnology\\Widgets')
             ->widgets([

@@ -72,8 +72,8 @@ class AttendanceResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->deferLoading()
-            ->heading('Clients')
-            ->description('Manage your clients here.')
+            ->heading('Attendance Records List')
+            ->description('Manage attendance here.')
             ->columns([
                 Tables\Columns\TextColumn::make('No')
                 ->rowIndex(),
@@ -93,47 +93,61 @@ class AttendanceResource extends Resource implements HasShieldPermissions
                 Tables\Columns\TextColumn::make('date')->sortable(),
                 Tables\Columns\TextColumn::make('time_in')->label('Time In'),
                 Tables\Columns\TextColumn::make('time_out')->label('Time Out'),
-                Tables\Columns\TextColumn::make('status_in')->label('Status In'),
-                Tables\Columns\TextColumn::make('status_out')->label('Status Out'),
+                Tables\Columns\TextColumn::make('status_in')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'late' => 'danger',
+                        'unlate' => 'success',
+                    })
+                    ->label('Status In'),
+                Tables\Columns\TextColumn::make('status_out')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'late' => 'danger',
+                        'unlate' => 'success',
+                    })
+                    ->label('Status Out'),
             ])
             ->filters([
                 DateRangeFilter::make('date')
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                ->mutateRecordDataUsing(function (array $data): array {
-                    $out = Attendance::where('in_attendance_id', $data['id'])->first();
-                    $data['attendance']['lat'] = $out->lat;
-                    $data['attendance']['lng'] = $out->lng;
-                    $data['attendance']['time'] = $out->time;
-                    $data['attendance']['date'] = $out->date;
-                    return $data;
-                })
-                ->using(function (Model $record, array $data): Model {
-                    $q = Attendance::find($record->id);
-                    $q->nik = $record->nik;
-                    $q->schedule_group_attendances_id = $data['schedule_group_attendances_id'];
-                    $q->lat = $data['lat'];
-                    $q->lng = $data['lng'];
-                    $q->time = $data['time'];
-                    $q->date = $record->date;
-                    $q->save();
-                    $q->attendance()->updateOrCreate(
-                        [
-                            'in_attendance_id'=> $record->id,
-                        ],
-                        [
-                            'nik'=> $record->nik,
-                            'schedule_group_attendances_id'=> $data['schedule_group_attendances_id'],
-                            'lat'=> $data['attendance']['lat'],
-                            'lng'=> $data['attendance']['lng'],
-                            'time'=> $data['attendance']['time'],
-                            'date'=> $record->date
-                        ]
-                    );
-                    return $record;
-                }),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->mutateRecordDataUsing(function (array $data): array {
+                            $out = Attendance::where('in_attendance_id', $data['id'])->first();
+                            $data['attendance']['lat'] = $out->lat;
+                            $data['attendance']['lng'] = $out->lng;
+                            $data['attendance']['time'] = $out->time;
+                            $data['attendance']['date'] = $out->date;
+                            return $data;
+                        })
+                        ->using(function (Model $record, array $data): Model {
+                            $q = Attendance::find($record->id);
+                            $q->nik = $record->nik;
+                            $q->schedule_group_attendances_id = $data['schedule_group_attendances_id'];
+                            $q->lat = $data['lat'];
+                            $q->lng = $data['lng'];
+                            $q->time = $data['time'];
+                            $q->date = $record->date;
+                            $q->save();
+                            $q->attendance()->updateOrCreate(
+                                [
+                                    'in_attendance_id'=> $record->id,
+                                ],
+                                [
+                                    'nik'=> $record->nik,
+                                    'schedule_group_attendances_id'=> $data['schedule_group_attendances_id'],
+                                    'lat'=> $data['attendance']['lat'],
+                                    'lng'=> $data['attendance']['lng'],
+                                    'time'=> $data['attendance']['time'],
+                                    'date'=> $record->date
+                                ]
+                            );
+                            return $record;
+                        }),
+                    Tables\Actions\DeleteAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

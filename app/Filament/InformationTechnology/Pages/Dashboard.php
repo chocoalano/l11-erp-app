@@ -13,11 +13,10 @@ class Dashboard extends \Filament\Pages\Dashboard
     {
         return 12;
     }
- 
     public function getWidgets(): array
     {
         return [
-            SupportItOverview::class,
+            SupportItOverview::class
         ];
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Auth\Login;
+use App\Filament\Pages\AdministrationGa;
+use App\Filament\Pages\Dashboard;
 use App\Filament\Resources\HrResource\Widgets\StatsUserOverview;
 use App\Filament\Resources\HrResource\Widgets\UsersChart;
 use Filament\Http\Middleware\Authenticate;
@@ -41,7 +43,7 @@ class HumanResourcesPanelProvider extends PanelProvider
             ->spa()
             ->sidebarCollapsibleOnDesktop()
             ->viteTheme('resources/css/filament/humanResources/theme.css')
-            ->topNavigation()
+            // ->topNavigation()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->userMenuItems([
@@ -53,7 +55,8 @@ class HumanResourcesPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
+                AdministrationGa::class,
             ])
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
@@ -73,14 +76,6 @@ class HumanResourcesPanelProvider extends PanelProvider
                 ]),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                StatsUserOverview::class,
-                AttendanceLateChart::class,
-                AttendanceUnlateChart::class,
-                OrganizationLateChart::class,
-                OrganizationUnlateChart::class,
-                // UsersChart::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

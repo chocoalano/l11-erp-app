@@ -98,10 +98,18 @@ class UserResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                $org = Organization::where('name', 'ICT')->first();
-                return $query->whereHas('employe', function($query) use ($org){
-                    $query->where('organization_id', $org->id);
-                }); 
+                $u = User::find(auth()->user()->id);
+                if ($u->hasRole(['super_admin'])) {
+                    return $query;
+                }else{
+                    $usr = User::with('employe')->where('id', auth()->user()->id)->first();
+                    $org = Organization::with('employe')->where('id', $usr->employe->organization_id)->first();
+                    $userId = [];
+                    foreach ($org->employe as $k) {
+                        array_push($userId, $k->user_id);
+                    }
+                    return $query->whereIn('id', $userId); 
+                } 
             })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
@@ -214,6 +222,10 @@ class UserResource extends Resource implements HasShieldPermissions
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
+                    ->hidden(function (): bool {
+                        $u = User::find(auth()->user()->id);
+                        return ($u->hasRole(['super_admin', 'Support & Infra IT'])) ? false : true;
+                    })
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

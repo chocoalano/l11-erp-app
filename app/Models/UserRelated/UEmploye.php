@@ -2,6 +2,11 @@
 
 namespace App\Models\UserRelated;
 
+use App\Models\Branch;
+use App\Models\Company;
+use App\Models\JobLevel;
+use App\Models\JobPosition;
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,23 +34,23 @@ class UEmploye extends Model
     }
     public function organization(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\SystemSetup\Organization::class, 'organization_id', 'id');
+        return $this->belongsTo(Organization::class, 'organization_id', 'id');
     }
     public function job_position(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\SystemSetup\JobPosition::class, 'job_position_id', 'id');
+        return $this->belongsTo(JobPosition::class, 'job_position_id', 'id');
     }
     public function job_level(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\SystemSetup\JobLevel::class, 'job_level_id', 'id');
+        return $this->belongsTo(JobLevel::class, 'job_level_id', 'id');
     }
     public function company(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\SystemSetup\Company::class, 'company_id', 'id');
+        return $this->belongsTo(Company::class, 'company_id', 'id');
     }
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\SystemSetup\Branch::class, 'branch_id', 'id');
+        return $this->belongsTo(Branch::class, 'branch_id', 'id');
     }
     public function approval_line(): BelongsTo
     {

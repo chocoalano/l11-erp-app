@@ -3,9 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Auth\Login;
+use App\Filament\Marketing\Pages\AdministrationHrga;
+use App\Filament\Marketing\Pages\Dashboard;
 use App\Filament\Marketing\Pages\Profile;
-use App\Filament\Marketing\Widgets\StatsDigitalMarketingOverview;
-use App\Filament\Marketing\Widgets\StatsOverview;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -13,7 +13,6 @@ use Filament\Navigation\MenuItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -28,7 +27,6 @@ class MarketingPanelProvider extends PanelProvider
     {
         return $panel
             ->id('marketing')
-            // ->collapsibleNavigationGroups(false)
             ->path('marketing')
             ->brandName('E-SAS')
             ->brandLogo(asset('images/logo.svg'))
@@ -66,14 +64,10 @@ class MarketingPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Marketing/Resources'), for: 'App\\Filament\\Marketing\\Resources')
             ->discoverPages(in: app_path('Filament/Marketing/Pages'), for: 'App\\Filament\\Marketing\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
+                AdministrationHrga::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Marketing/Widgets'), for: 'App\\Filament\\Marketing\\Widgets')
-            ->widgets([
-                StatsDigitalMarketingOverview::class
-                // Widgets\AccountWidget::class,
-                // Widgets\FilamentInfoWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

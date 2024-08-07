@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
             ->iconSize(16)
             ->labels([
                 'hr' => 'HRIS',
-                'it' => 'HTS',
+                'it' => 'ITS',
                 'marketing' => 'MIS',
             ]);
         });

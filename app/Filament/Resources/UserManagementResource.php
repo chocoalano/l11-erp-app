@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserManagementResource\Pages;
 use App\Filament\Resources\UserManagementResource\RelationManagers;
+use App\Models\Organization;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\User;
 use Filament\Forms;
@@ -291,6 +292,20 @@ class UserManagementResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                $u = User::find(auth()->user()->id);
+                if ($u->hasRole(['super_admin', 'Administrator HR'])) {
+                    return $query;
+                }else{
+                    $usr = User::with('employe')->where('id', auth()->user()->id)->first();
+                    $org = Organization::with('employe')->where('id', $usr->employe->organization_id)->first();
+                    $userId = [];
+                    foreach ($org->employe as $k) {
+                        array_push($userId, $k->user_id);
+                    }
+                    return $query->whereIn('id', $userId); 
+                } 
+            })
             ->headerActions([
                 // START FOR BUTTON DOWNLOAD FORMATED IMPORT
                 Tables\Actions\Action::make('Download Excel For Import Data')
