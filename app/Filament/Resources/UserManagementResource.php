@@ -376,7 +376,7 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                         $path = $file->getRealPath();
                         $ss = IOFactory::load($path);
                         $worksheet = $ss->getActiveSheet();
-                        $employeeData = [];
+                        $helper = new \App\Classes\MyHelpers();
                         // Loop melalui baris data (mulai dari baris kedua jika baris pertama adalah header)
                         foreach ($worksheet->getRowIterator(2) as $row) {
                             $cellIterator = $row->getCellIterator();
@@ -396,7 +396,7 @@ class UserManagementResource extends Resource implements HasShieldPermissions
 
                             // Masukkan data ke dalam array dengan key yang sesuai
                             if(!is_null($rowData[0])||!empty($rowData[0])){
-                                $employeeData[] = [
+                                $k = [
                                     'nik' => $rowData[0],
                                     'nama' => $rowData[1],
                                     'dept' => $rowData[2],
@@ -417,10 +417,10 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                                     'gender' => $rowData[17],
                                     'status_pernikahan' => $rowData[18],
                                 ];
+                                $helper->validateUserExist($k);
                             }
                             continue;
                         }
-                        ProcessImportUserBiotime::dispatch($employeeData);
                         Notification::make()
                             ->title('Import successfully')
                             ->success()
