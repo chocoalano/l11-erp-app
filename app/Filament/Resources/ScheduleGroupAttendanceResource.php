@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -86,12 +87,27 @@ class ScheduleGroupAttendanceResource extends Resource implements HasShieldPermi
     public static function table(Table $table): Table
     {
         return $table
+            ->groups([
+                Group::make('user.nik')
+                    ->label('NIK Users')
+                    ->collapsible(),
+                Group::make('user.name')
+                    ->label('Name Users')
+                    ->collapsible(),
+                Group::make('time.type')
+                    ->label('Time Type')
+                    ->collapsible(),
+            ])
+            ->paginated([10, 25, 50, 100, 'all'])
             ->columns([
-                Tables\Columns\TextColumn::make('group_attendance.name')
+                Tables\Columns\TextColumn::make('user.nik')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('user.name')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('time.type')
-                    ->numeric()
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('date')
                     ->date()

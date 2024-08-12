@@ -8,6 +8,7 @@ use App\Http\Requests\Attendance\AttendanceUpdateRequest;
 use App\Interfaces\Hris\AttendanceInterface;
 use App\Jobs\ProcessLargeData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
@@ -78,12 +79,10 @@ class AttendanceController extends Controller
         return ApiResponseClass::sendResponse('Delete Successful','',204);
     }
     public function integratedFromMachine(Request $request){
-        $data = $request->all();
-        // $q = ProcessLargeData::dispatch($data['data']);
-        // dd($q);
+        $input = $request->all();
         DB::beginTransaction();
         try{
-            $q = ProcessLargeData::dispatch($data['data']);
+            $q = ProcessLargeData::dispatch($input['data']);
             DB::commit();
             return ApiResponseClass::sendResponse($q,'Presence Successful',200);
         }catch(\Exception $ex){

@@ -9,11 +9,13 @@ use App\Models\GroupAttendance;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Carbon;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class GroupAttendanceResource extends Resource implements HasShieldPermissions
 {
@@ -75,81 +77,45 @@ class GroupAttendanceResource extends Resource implements HasShieldPermissions
         return $table
             ->headerActions([
                 // START FOR BUTTON IMPORT
-                Tables\Actions\Action::make('Import Users Group Productions From Excel')
+                Tables\Actions\Action::make('Import Users Group From Excel')
                 ->outlined()
-                ->icon('fas-file-import')->form([
-                    Forms\Components\FileUpload::make('fileImport')
-                    ->storeFiles(false)
-                    ->columnSpanFull()
-                    ->required(),
+                ->icon('fas-file-import')
+                ->form([
+                    Forms\Components\Section::make('Import From .xlsx Schedule Biotime')
+                        ->description('Make sure you have updated all user data first to help the system validation process when doing this process, and if there are new users make sure you have added / imported them to the user data!')
+                        ->schema([
+                            Forms\Components\FileUpload::make('fileImport')
+                            ->storeFiles(false)
+                            ->columnSpanFull()
+                            ->required(),
+                        ])
                 ])->action(function (array $data) {
                     $file = $data['fileImport'];
                     $path = $file->getRealPath();
                     $spreadsheet = IOFactory::load($path);
-                    
-                    // Get the active sheet
-                    $sheet = $spreadsheet->getActiveSheet();
-                    
-                    // Get the header from the second row
-                    $header = [];
-                    $headerRow = 2;
-                    
-                    foreach ($sheet->getRowIterator($headerRow, $headerRow) as $row) {
-                        $cellIterator = $row->getCellIterator();
-                        $cellIterator->setIterateOnlyExistingCells(false);
-                        foreach ($cellIterator as $cell) {
-                            $headerValue = $cell->getValue();
-                            if ($headerValue) {
-                                $header[] = $headerValue;
-                            }
-                        }
+                    // Get the first sheet
+                    $sheet = $spreadsheet->getActiveSheet()->toArray();
+                    $originalArray = array_slice($sheet, 1);
+                    // Get the current date
+                    // $currentDate = Carbon::today();
+                    $currentDate = Carbon::now()->day(10);
+                    // Initialize an empty array to hold the extracted data
+                    $extractedData = [];
+                    // Loop through the rows of the sheet
+                    foreach ($originalArray as $row) {
+                        // Map the row data to the corresponding fields
+                        list($nik, $name, $department, $jobPosition) = $row;
+                        $extractedData[]=[
+                            "nik"=>$nik,
+                            "name"=>$name,
+                            "department"=>$department,
+                            "jobPosition"=>$jobPosition,
+                            "date"=>$currentDate->toDateString(),
+                            "jam"=>$row[$currentDate->day + 3],
+                        ];
                     }
-                    
-                    // Initialize the array to hold the data
-                    $dataArray = [];
-                    
-                    // Start reading from the third row
-                    $startRow = 3;
-                    
-                    foreach ($sheet->getRowIterator($startRow) as $row) {
-                        $rowData = [];
-                        $cellIterator = $row->getCellIterator();
-                        $cellIterator->setIterateOnlyExistingCells(false);
-                        
-                        $headerIndex = 0;
-                        foreach ($cellIterator as $cell) {
-                            if (isset($header[$headerIndex])) {
-                                $rowData[$header[$headerIndex]] = $cell->getValue();
-                            }
-                            $headerIndex++;
-                        }
-                        
-                        $dataArray[] = $rowData;
-                    }
-                    
-                    $helper = new MyHelpers();
-                    $groupA = [];
-                    $groupB = [];
-                    
-                    foreach ($dataArray as $key) {
-                        $cekUser = $helper->validateUserExistAttendanceSync($key['NIK'], $key['Department'], $key['Jabatan'], $key['NAMA KARYAWAN']);
-                        if ($key['GRUP'] == 'JAUHARI/B') {
-                            array_push($groupB, $cekUser->id);
-                        } else {
-                            array_push($groupA, $cekUser->id);
-                        }
-                    }
-                    
-                    // Assuming you have a relation defined in GroupAttendance model
-                    $groupAInstance = GroupAttendance::where('name', 'GROUP-A')->where('pattern_name', 'production')->first();
-                    if ($groupAInstance) {
-                        $groupAInstance->user()->sync($groupA);
-                    }
-                    
-                    $groupBInstance = GroupAttendance::where('name', 'GROUP-B')->where('pattern_name', 'production')->first();
-                    if ($groupBInstance) {
-                        $groupBInstance->user()->sync($groupB);
-                    }
+                    $helper = new \App\Classes\MyHelpers();
+                    $cek = $helper->addUserGroup($extractedData);
                 })
                 // END FOR BUTTON DOWNLOAD FORMATED IMPORT
             ])

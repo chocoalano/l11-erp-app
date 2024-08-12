@@ -35,7 +35,7 @@ class CalendarEventWidgets extends CalendarWidget
     protected bool $eventClickEnabled = true;
     public function getDateClickContextMenuActions(): array
     {
-        $authUser = User::with('employe')->where('id', auth()->user()->id)->first();
+        $authUser = User::with('employe')->where('id', auth()->id)->first();
         return [
             CreateAction::make('cuti')
                 ->label('Create Form Cuti')
@@ -50,7 +50,7 @@ class CalendarEventWidgets extends CalendarWidget
                             Select::make('user_id')
                                 ->label('Choose Users')
                                 ->options(function (Builder $query) use ($authUser) {
-                                    $u = User::find(auth()->user()->id);
+                                    $u = User::find(auth()->id);
                                     if ($u->hasRole(['super_admin'])) {
                                         return User::get()
                                             ->pluck('name', 'id');
@@ -110,7 +110,7 @@ class CalendarEventWidgets extends CalendarWidget
                             Select::make('user_id')
                                 ->label('Choose Users')
                                 ->options(function (Builder $query) use ($authUser) {
-                                    $u = User::find(auth()->user()->id);
+                                    $u = User::find(auth()->id);
                                     if ($u->hasRole(['super_admin'])) {
                                         return User::get()
                                             ->pluck('name', 'id');
@@ -190,7 +190,7 @@ class CalendarEventWidgets extends CalendarWidget
                             Select::make('user_id')
                                 ->label('Choose Users')
                                 ->options(function (Builder $query) use ($authUser) {
-                                    $u = User::find(auth()->user()->id);
+                                    $u = User::find(auth()->id);
                                     if ($u->hasRole(['super_admin'])) {
                                         return User::get()
                                             ->pluck('name', 'id');
@@ -243,7 +243,7 @@ class CalendarEventWidgets extends CalendarWidget
                             Select::make('user_id')
                                 ->label('Choose Users')
                                 ->options(function (Builder $query) use ($authUser) {
-                                    $u = User::find(auth()->user()->id);
+                                    $u = User::find(auth()->id);
                                     if ($u->hasRole(['super_admin'])) {
                                         return User::get()
                                             ->pluck('name', 'id');
@@ -300,7 +300,7 @@ class CalendarEventWidgets extends CalendarWidget
                             Select::make('user_id')
                                 ->label('Choose Users')
                                 ->options(function (Builder $query) use ($authUser) {
-                                    $u = User::find(auth()->user()->id);
+                                    $u = User::find(auth()->id);
                                     if ($u->hasRole(['super_admin'])) {
                                         return User::get()
                                             ->pluck('name', 'id');
@@ -375,7 +375,7 @@ class CalendarEventWidgets extends CalendarWidget
                                 Select::make('user_id')
                                     ->label('Choose User')
                                     ->options(function (Builder $query) use ($authUser) {
-                                        $u = User::find(auth()->user()->id);
+                                        $u = User::find(auth()->id);
                                         if ($u->hasRole(['super_admin'])) {
                                             return User::get()
                                                 ->pluck('name', 'id');
@@ -394,7 +394,7 @@ class CalendarEventWidgets extends CalendarWidget
                             ])
                 ])
                 ->action(function (array $data) {
-                    $data['userid_created'] = auth()->user()->id;
+                    $data['userid_created'] = auth()->id;
                     $i = WorkOvertime::create($data);
                     $i->userMember()->createMany($data['members']);
                     // Membuat instance Event setelahnya dan mengasosiasikan dengan IzinOrSick
@@ -418,7 +418,7 @@ class CalendarEventWidgets extends CalendarWidget
         $absen = ScheduleGroupAttendance::query()
             ->with('time')
             ->whereHas('group_users', function($query){
-                $query->where('user_id', auth()->user()->id);
+                $query->where('user_id', auth()->id);
             })
             ->where('date', '>=', $fetchInfo['start'])
             ->where('date', '<=', $fetchInfo['end'])

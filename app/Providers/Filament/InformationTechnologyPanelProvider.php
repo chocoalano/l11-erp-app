@@ -45,6 +45,8 @@ class InformationTechnologyPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->plugins([
+                \Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin::make()
+                ->enableNavigation(),
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make()
                 ->gridColumns([
                     'default' => 2,

@@ -6,6 +6,7 @@ use App\Filament\Resources\UserManagementResource\Pages;
 use App\Filament\Resources\UserManagementResource\RelationManagers;
 use App\Models\Organization;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Notifications\Notification;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use App\Jobs\ProcessImportUserBiotime;
 
 class UserManagementResource extends Resource implements HasShieldPermissions
 {
@@ -309,53 +311,118 @@ class UserManagementResource extends Resource implements HasShieldPermissions
             ->headerActions([
                 // START FOR BUTTON DOWNLOAD FORMATED IMPORT
                 Tables\Actions\Action::make('Download Excel For Import Data')
-                ->icon('fas-file-excel')
-                ->url(route('download.user.format.excel'))
-                ->openUrlInNewTab(),
+                    ->icon('fas-file-excel')
+                    ->outlined()
+                    ->url(route('download.user.format.excel'))
+                    ->openUrlInNewTab(),
                 // END FOR BUTTON DOWNLOAD FORMATED IMPORT
                 // START FOR BUTTON IMPORT
                 Tables\Actions\Action::make('Import From Excel')
-                ->icon('fas-file-import')->form([
-                    Forms\Components\FileUpload::make('fileImport')
-                    ->storeFiles(false)
-                    ->columnSpanFull()
-                    ->required(),
-            ])
-            ->action(function (array $data): void {
-                $file = $data['fileImport'];
-                $path = $file->getRealPath();
-                $ss = IOFactory::load($path);
-                $sheet = $ss->getActiveSheet();
-                $highestColumnIndex = $sheet->getHighestDataColumn();
-                $headers = $sheet->rangeToArray('A1:' . $highestColumnIndex . '1', null, true, false)[0];
-                $datarow = [];
-                foreach ($sheet->getRowIterator(2) as $row) {
-                    $rowData = [];
-                    $cellIterator = $row->getCellIterator();
-                    $cellIterator->setIterateOnlyExistingCells(false);
-                    foreach ($cellIterator as $cell) {
-                        $columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($cell->getColumn()) - 1;
-                        $value = $cell->getValue();
-                        $header = $headers[$columnIndex];
-                        $rowData[$header] = $value;
-                    }
-                    $datarow[] = $rowData;
-                }
-                $u = new \App\Http\Controllers\Web\UserController();
-                $exec = $u->importFormatExcelImport($datarow);
-                if($exec === 'success import!'){
-                    Notification::make()
-                    ->title('Import successfully')
-                    ->success()
-                    ->send();
-                }else{
-                    Notification::make()
-                    ->title('Import Unsuccessfully')
-                    ->success()
-                    ->body($exec)
-                    ->send();
-                }
-            }),
+                    ->icon('fas-file-import')
+                    ->outlined()
+                    ->form([
+                        Forms\Components\FileUpload::make('fileImport')
+                        ->storeFiles(false)
+                        ->columnSpanFull()
+                        ->required(),
+                    ])
+                    ->action(function (array $data): void {
+                        $file = $data['fileImport'];
+                        $path = $file->getRealPath();
+                        $ss = IOFactory::load($path);
+                        $sheet = $ss->getActiveSheet();
+                        $highestColumnIndex = $sheet->getHighestDataColumn();
+                        $headers = $sheet->rangeToArray('A1:' . $highestColumnIndex . '1', null, true, false)[0];
+                        $datarow = [];
+                        foreach ($sheet->getRowIterator(2) as $row) {
+                            $rowData = [];
+                            $cellIterator = $row->getCellIterator();
+                            $cellIterator->setIterateOnlyExistingCells(false);
+                            foreach ($cellIterator as $cell) {
+                                $columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($cell->getColumn()) - 1;
+                                $value = $cell->getValue();
+                                $header = $headers[$columnIndex];
+                                $rowData[$header] = $value;
+                            }
+                            $datarow[] = $rowData;
+                        }
+                        $u = new \App\Http\Controllers\Web\UserController();
+                        $exec = $u->importFormatExcelImport($datarow);
+                        if($exec === 'success import!'){
+                            Notification::make()
+                            ->title('Import successfully')
+                            ->success()
+                            ->send();
+                        }else{
+                            Notification::make()
+                            ->title('Import Unsuccessfully')
+                            ->success()
+                            ->body($exec)
+                            ->send();
+                        }
+                    }),
+                Tables\Actions\Action::make('Import From Excel Biotime')
+                    ->icon('fas-file-import')
+                    ->outlined()
+                    ->color('info')
+                    ->form([
+                        Forms\Components\FileUpload::make('fileImport')
+                        ->storeFiles(false)
+                        ->columnSpanFull()
+                        ->required(),
+                    ])
+                    ->action(function (array $data): void {
+                        $file = $data['fileImport'];
+                        $path = $file->getRealPath();
+                        $ss = IOFactory::load($path);
+                        $worksheet = $ss->getActiveSheet();
+                        $employeeData = [];
+                        // Loop melalui baris data (mulai dari baris kedua jika baris pertama adalah header)
+                        foreach ($worksheet->getRowIterator(2) as $row) {
+                            $cellIterator = $row->getCellIterator();
+                            $cellIterator->setIterateOnlyExistingCells(false); // Loop semua sel dalam baris
+
+                            $rowData = [];
+                            foreach ($cellIterator as $cell) {
+                                $rowData[] = $cell->getValue();
+                            }
+
+                            // Validasi dan konversi tanggal
+                            $joinDate = is_numeric($rowData[9]) ? 
+                                \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rowData[9])->format('Y-m-d') : null;
+
+                            $birthDate = is_numeric($rowData[16]) ? 
+                                \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rowData[15])->format('Y-m-d') : null;
+
+                            // Masukkan data ke dalam array dengan key yang sesuai
+                            $employeeData[] = [
+                                'nik' => $rowData[0],
+                                'nama' => $rowData[1],
+                                'dept' => $rowData[2],
+                                'position' => $rowData[3],
+                                'level' => $rowData[4],
+                                'atasan' => $rowData[5],
+                                'grade' => $rowData[6],
+                                'emp_status' => $rowData[7],
+                                'area_kerja' => $rowData[8],
+                                'tgl_bergabung' => $joinDate,
+                                'no_ktp' => $rowData[10],
+                                'no_npwp' => $rowData[11],
+                                'no_hp' => $rowData[12],
+                                'email' => $rowData[13],
+                                'placebirth' => $rowData[14],
+                                'datebirth' => $birthDate,
+                                'religion' => $rowData[16],
+                                'gender' => $rowData[17],
+                                'status_pernikahan' => $rowData[18],
+                            ];
+                        }
+                        ProcessImportUserBiotime::dispatch($employeeData);
+                        Notification::make()
+                            ->title('Import successfully')
+                            ->success()
+                            ->send();
+                    }),
             // END FOR BUTTON IMPORT
             // START FOR BUTTON EXPORT DATA TO .XLSX
             Tables\Actions\Action::make('Export To Excel')

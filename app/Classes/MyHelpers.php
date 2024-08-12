@@ -141,112 +141,239 @@ class MyHelpers
             return 'GROUP NON SHIFT';
         }
     }
-    function validateUserGroupSchedule($groupAttendanceId, $date, $time){
-        $groupPresence = GroupAttendance::where('id', $groupAttendanceId)
-        ->whereHas('schedule_attendance', function ($query) use ($date) {
-            $query->where('date', $date);
-        })->first();
-        $jadwal = !is_null($groupPresence) ? $groupPresence->schedule_attendance : null;
-        if (is_null($jadwal)) {
-            $shift = DB::table('time_attendances')
-            ->select('*', DB::raw('ABS(TIME_TO_SEC(TIMEDIFF("'.$time.'", `in`))) AS time_difference'))
-            ->orderBy('time_difference', 'asc')
-            ->first();
-            $x = GroupAttendance::find($groupAttendanceId)->first();
-            $x->schedule_attendance()->updateOrCreate(
-                [
-                    "date"=>$date
-                ],
-                [
-                    "time_attendance_id"=>$shift->id,
-                    "date"=>$date,
-                    "status"=>'unpresent'
-                ]
-            );
-            $jadwal = $x->schedule_attendance;
+    function syncJamJadwalKerja($departmentId, $jam) {
+        // Inisialisasi default untuk $where
+        $where = ['type' => 'Office', 'pattern_name' => 'office'];
+    
+        $dept = \App\Models\Organization::find($departmentId);
+    
+        // Cek jika $dept tidak null
+        if ($dept) {
+            $department = $dept->name;
+            
+            if ($department === 'CLEANING SERVICE') {
+                if ($jam === 'Shift Adm') {
+                    $where = ['type' => 'Adm', 'pattern_name' => 'office', 'rules' => 0];
+                } elseif ($jam === 'Shift 1') {
+                    $where = ['type' => 'OB Shift 1', 'pattern_name' => 'office', 'rules' => 1];
+                } elseif ($jam === 'Shift 2') {
+                    $where = ['type' => 'OB Shift 2', 'pattern_name' => 'office', 'rules' => 2];
+                }
+            } elseif ($department === 'MAINTENANCE') {
+                if ($jam === 'Office Schedule') {
+                    $where = ['type' => 'Office', 'pattern_name' => 'office'];
+                } elseif ($jam === 'Shift 1') {
+                    $where = ['type' => 'MTC Shift 1', 'pattern_name' => 'maintenance', 'rules' => 1];
+                } elseif ($jam === 'Shift 2') {
+                    $where = ['type' => 'MTC Shift 2', 'pattern_name' => 'maintenance', 'rules' => 2];
+                }
+            } elseif ($department === 'WAREHOUSE') {
+                if ($jam === 'Office Schedule') {
+                    $where = ['type' => 'Office', 'pattern_name' => 'office'];
+                } elseif ($jam === 'Shift 1') {
+                    $where = ['type' => 'WH Shift 1', 'pattern_name' => 'warehouse', 'rules' => 1];
+                } elseif ($jam === 'Shift 2 Gudang') {
+                    $where = ['type' => 'WH Shift 2', 'pattern_name' => 'warehouse', 'rules' => 2];
+                }
+            } elseif ($department === 'PRODUKSI' || $department === 'QC') {
+                if ($jam === 'Office Schedule') {
+                    $where = ['type' => 'Office', 'pattern_name' => 'office'];
+                } elseif ($jam === 'Shift 1') {
+                    $where = ['type' => 'Shift 1', 'pattern_name' => 'production', 'rules' => 1];
+                } elseif ($jam === 'Shift 2') {
+                    $where = ['type' => 'Shift 2', 'pattern_name' => 'production', 'rules' => 2];
+                }
+            }
         }
-        $arr = [];
-        foreach ($jadwal as $k) {
-            array_push($arr, [
-            "id" => $k['id'],
-            "group_attendance_id" => $k['group_attendance_id'],
-            "time_attendance_id" => $k['time_attendance_id'],
-            "date" => $k['date'],
-            "status" => $k['status'],
-          ]);
-        }
-        $filteredData = array_filter($arr, function($item) use ($date) {
-            return $item['date'] === $date;
-        });
-        $firstElement = reset($filteredData);
-        return $firstElement;
+    
+        // Cari dan kembalikan data time attendance sesuai kondisi $where
+        return \App\Models\TimeAttendance::where($where)->first();
     }
-    function validateUserExistAttendanceSync($nik, $department, $position, $first_name){
-        // Cari user berdasarkan NIK
-        $user = User::with('group_attendance')->where('nik', $nik)->first();
-        if (is_null($user)) {
-            // Buat atau ambil departemen
-            $dept = Organization::firstOrCreate(
+    function validateUserExist(array $data)
+    {
+        try {
+            $religionMap = [
+                'KHATOLIK' => 'catholic',
+                'PROTESTAN' => 'protestant',
+                'HINDU' => 'hindu',
+                'BUDDHA' => 'buddha',
+                'ISLAM' => 'islam',
+            ];
+    
+            $agama = $religionMap[$data['religion']] ?? 'khonghucu';
+    
+            $user = User::updateOrCreate(
+                ['nik' => $data['nik']],
                 [
-                    "name" => $department,
-                    "description" => $department,
+                    'name' => $data['nama'],
+                    'email' => $data['email'],
+                    'email_verified_at' => date('Y-m-d H:i:s'),
+                    'phone' => $data['no_hp'],
+                    'placebirth' => $data['placebirth'],
+                    'datebirth' => $data['datebirth'],
+                    'gender' => $data['gender'] === 'LAKI-LAKI' ? 'm' : 'w',
+                    'religion' => $agama,
                 ]
             );
-            // Buat atau ambil posisi
-            $position = JobPosition::firstOrCreate(
-                [
-                    "name" => $position,
-                    "description" => $position,
-                ]
+    
+            $org = Organization::updateOrCreate(
+                ['name' => $data['dept']],
+                ['description' => $data['dept']]
             );
-            // Siapkan data user baru
-            $user = User::create([
-                'name' => $first_name,
-                'nik' => $nik,
-                'email' => Str::snake($first_name) . '_' . $nik . '@sinergiabadisentosa.com',
-                'password' => Hash::make($nik)
-            ]);
-
-            // Assign role ke user
-            $role = Role::findByName('panel_user');
-            $user->assignRole($role);
-            // Buat atau ambil perusahaan
-            $company = Company::firstOrCreate(
-                ['name' => 'PT. SINERGI ABADI SENTOSA'],
-                [
-                    'name' => 'PT. SINERGI ABADI SENTOSA',
-                    'latitude' => '-6.1749639',
-                    'longitude' => '106.59857115',
-                    'full_address' => 'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
-                ]
+    
+            $job = JobPosition::updateOrCreate(
+                ['name' => $data['position']],
+                ['description' => $data['position']]
             );
-            // Buat atau ambil cabang
-            $branch = Branch::firstOrCreate(
-                ['name' => 'Head Office'],
-                [
-                    'name' => 'Head Office',
-                    'latitude' => '-6.1749639',
-                    'longitude' => '106.59857115',
-                    'full_address' => 'Jl. Prabu Kian Santang No.169A, RT.001/RW.004, Sangiang Jaya, Kec. Periuk, Kota Tangerang, Banten 15132',
-                ]
+    
+            $lvl = JobLevel::updateOrCreate(
+                ['name' => $data['level']],
+                ['description' => $data['level']]
             );
-            // Ambil level pekerjaan dan approval
-            $lvl = JobLevel::find(7);
-            $approval = User::find(1);
-            // Buat data karyawan baru
-            $user->employe()->create([
-                'organization_id' => $dept->id,
-                'job_position_id' => $position->id,
-                'job_level_id' => $lvl ? $lvl->id : null,
-                'company_id' => $company->id,
-                'branch_id' => $branch->id,
-                'approval_line' => $approval ? $approval->id : null,
-                'approval_manager' => $approval ? $approval->id : null,
+    
+            $atasanName = $data['atasan'] === 'Agustinus' ? 'Tubagus Angga Dheviests' : $data['atasan'];
+    
+            $appline = User::where('name', $atasanName)->firstOrFail();
+            $appmngr = $appline;
+    
+            $dataEmp = [
+                'organization_id' => $org->id,
+                'job_position_id' => $job->id,
+                'job_level_id' => $lvl->id,
+                'approval_line' => $appline->id,
+                'approval_manager' => $appmngr->id,
+                'company_id' => 1,
+                'branch_id' => 1,
                 'status' => 'contract',
-                'join_date' => date('Y-m-d'),
-                'sign_date' => date('Y-m-d'),
-            ]);
+                'join_date' => $data['tgl_bergabung'],
+                'sign_date' => $data['tgl_bergabung'],
+            ];
+    
+            $user->employe()->updateOrCreate($dataEmp);
+    
+            return $user;
+        } catch (\Throwable $th) {
+            //throw $th;
+            return $th;
         }
-        return $user;
+    }
+    function addUserGroup(array $data)
+    {
+        $groups = [
+            'groupA' => [],
+            'groupB' => [],
+            'whA' => [],
+            'whB' => [],
+            'office' => [],
+            'adm' => [],
+            'mtncA' => [],
+            'mtncB' => [],
+            'mtncC' => [],
+            'mtncD' => [],
+            'mtncE' => [],
+            'mtncF' => [],
+            'mtncG' => []
+        ];
+
+        foreach ($data as $key) {
+            $u = User::where('nik', $key['nik'])->first();
+
+            switch ($key['department']) {
+                case 'PRODUKSI':
+                case 'CLEANING SERVICE':
+                    if ($key['jam'] === 'Shift 1') {
+                        $groups['groupA'][] = $u->id;
+                    } elseif ($key['jam'] === 'Shift 2') {
+                        $groups['groupB'][] = $u->id;
+                    } else {
+                        $groups['adm'][] = $u->id;
+                    }
+                    break;
+
+                case 'QC':
+                    if ($key['jobPosition'] === 'QC INLINE') {
+                        if ($key['jam'] === 'Shift 1') {
+                            $groups['groupA'][] = $u->id;
+                        } else {
+                            $groups['groupB'][] = $u->id;
+                        }
+                    } else {
+                        $groups['office'][] = $u->id;
+                    }
+                    break;
+
+                case 'WAREHOUSE':
+                    if ($key['jobPosition'] === 'DRIVER WAREHOUSE' || $key['jam'] === 'Office Schedule') {
+                        $groups['adm'][] = $u->id;
+                    } elseif ($key['jam'] === 'Shift 1') {
+                        $groups['whA'][] = $u->id;
+                    } else {
+                        $groups['whB'][] = $u->id;
+                    }
+                    break;
+
+                case 'MAINTENANCE':
+                    if ($key['jobPosition'] === 'SPV MAINTENANCE') {
+                        $groups['office'][] = $u->id;
+                    } else {
+                        switch ($key['name']) {
+                            case 'Yoga Pangestu':
+                                $groups['mtncA'][] = $u->id;
+                                break;
+                            case 'Ari Maulana Rahman':
+                                $groups['mtncB'][] = $u->id;
+                                break;
+                            case 'Muhammad Rivaldiansyah Nugraha':
+                                $groups['mtncC'][] = $u->id;
+                                break;
+                            case 'Rusli':
+                                $groups['mtncD'][] = $u->id;
+                                break;
+                            case 'Yan Dwiyono Putro':
+                                $groups['mtncE'][] = $u->id;
+                                break;
+                            case 'Ali Firdaus':
+                                $groups['mtncF'][] = $u->id;
+                                break;
+                            case 'Mujib RIdwan Fauzi':
+                                $groups['mtncG'][] = $u->id;
+                                break;
+                        }
+                    }
+                    break;
+
+                default:
+                    $groups['office'][] = $u->id;
+                    break;
+            }
+        }
+
+        $groupNames = [
+            'GROUP NON SHIFT ADM' => 'adm',
+            'GROUP NON SHIFT' => 'office',
+            'GROUP-A' => 'groupA',
+            'GROUP-B' => 'groupB',
+            'GUDANG A' => 'whA',
+            'GUDANG B' => 'whB',
+            'MAINTENANCE A' => 'mtncA',
+            'MAINTENANCE B' => 'mtncB',
+            'MAINTENANCE C' => 'mtncC',
+            'MAINTENANCE D' => 'mtncD',
+            'MAINTENANCE E' => 'mtncE',
+            'MAINTENANCE F' => 'mtncF',
+            'MAINTENANCE G' => 'mtncG'
+        ];
+
+        foreach ($groupNames as $groupName => $groupKey) {
+            $group = \App\Models\GroupAttendance::where([
+                'name' => $groupName
+            ])->first();
+    
+            if ($group) {
+                $group->user()->sync($groups[$groupKey]);
+            }
+        }
+
+        return $groups;
     }
 }

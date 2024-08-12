@@ -53,52 +53,60 @@ class ProcessLargeData implements ShouldQueue
             foreach ($chunk->toArray() as $k) {
                 $date = Carbon::parse($k['punch_time']);
                 $time = $date->format('H:i:s');
-                // VALIDASI USER::STARTED
-                $user = $helper->validateUserExistAttendanceSync($k['emp_code'], $k['department'], $k['position'], $k['first_name']);
+                $user = \App\Models\User::with('employe', 'group_attendance')->where('nik', $k['emp_code'])->first();
                 // VALIDASI USER::ENDED
-                if (count($user->group_attendance) < 1) {
+                if (count($user->group_attendance) < 1 || is_null($user->group_attendance)) {
                     continue;
-                }
-                $cekJadwal = $helper->validateUserGroupSchedule($user->group_attendance[0]->id, $date->format('Y-m-d'), $time);
-                $validate = $helper->cekStatusTelatAbsen($date->format('Y-m-d'), $cekJadwal['group_attendance_id'], $time, (int)$k['punch_state'] < 1 ? 'in' : 'out');
-                $status = $validate['status'];
-                $data = [
-                    'nik' => $k['emp_code'],
-                    'schedule_group_attendances_id' => (int)$cekJadwal['id'],
-                    'date' => $date->format('Y-m-d'),
-                ];
-                if ((int)$k['punch_state'] < 1) {
-                    $data = array_merge($data, [
-                        'lat_in' => (double)'-6.1749639',
-                        'lng_in' => (double)'106.598571,15',
-                        'time_in' => $time,
-                        'status_in' => $status
-                    ]);
-                
-                    Attendance::updateOrCreate(
-                        [
+                }else{
+                    $cekJadwal = \App\Models\ScheduleGroupAttendance::where([
+                        'group_attendance_id'=>$user->group_attendance[0]->id,
+                        'user_id'=>$user->id,
+                        'date'=>$date->format('Y-m-d')
+                    ])->first();
+                    if ($cekJadwal) {
+                        $helper = new \App\Classes\MyHelpers();
+                        $validate = $helper->cekStatusTelatAbsen($date->format('Y-m-d'), $cekJadwal['group_attendance_id'], $time, (int)$k['punch_state'] < 1 ? 'in' : 'out');
+                        $status = $validate['status'];
+                        $data = [
                             'nik' => $k['emp_code'],
+                            'schedule_group_attendances_id' => (int)$cekJadwal['id'],
                             'date' => $date->format('Y-m-d'),
-                            'schedule_group_attendances_id' => (int)$cekJadwal['id']
-                        ],
-                        $data
-                    );
-                } else {
-                    $data = array_merge($data, [
-                        'lat_out' => (double)'-6.1749639',
-                        'lng_out' => (double)'106.598571,15',
-                        'time_out' => $time,
-                        'status_out' => $status
-                    ]);
-                
-                    Attendance::updateOrCreate(
-                        [
-                            'nik' => $k['emp_code'],
-                            'date' => $date->format('Y-m-d'),
-                            'schedule_group_attendances_id' => (int)$cekJadwal['id']
-                        ],
-                        $data
-                    );
+                        ];
+                        if ((int)$k['punch_state'] < 1) {
+                            $data = array_merge($data, [
+                                'lat_in' => (double)'-6.1749639',
+                                'lng_in' => (double)'106.598571,15',
+                                'time_in' => $time,
+                                'status_in' => $status
+                            ]);
+                        
+                            \App\Models\Attendance::updateOrCreate(
+                                [
+                                    'nik' => $k['emp_code'],
+                                    'date' => $date->format('Y-m-d'),
+                                    'schedule_group_attendances_id' => (int)$cekJadwal['id']
+                                ],
+                                $data
+                            );
+                        } else {
+                            $data = array_merge($data, [
+                                'lat_out' => (double)'-6.1749639',
+                                'lng_out' => (double)'106.598571,15',
+                                'time_out' => $time,
+                                'status_out' => $status
+                            ]);
+                        
+                            \App\Models\Attendance::updateOrCreate(
+                                [
+                                    'nik' => $k['emp_code'],
+                                    'date' => $date->format('Y-m-d'),
+                                    'schedule_group_attendances_id' => (int)$cekJadwal['id']
+                                ],
+                                $data
+                            );
+                        }
+                    }
+                    continue;
                 }
             }
         });

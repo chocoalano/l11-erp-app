@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ScheduleGroupAttendanceResource\Pages;
 
 use App\Filament\Resources\ScheduleGroupAttendanceResource;
+use App\Jobs\ProcessImportScheduleFromBiotime;
 use App\Models\ScheduleGroupAttendance;
 use DateInterval;
 use DatePeriod;
@@ -16,11 +17,14 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\GroupAttendance;
 use App\Models\TimeAttendance;
+use App\Models\User;
 use Filament\Actions\ActionGroup;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ManageScheduleGroupAttendances extends ManageRecords
 {
@@ -46,199 +50,248 @@ class ManageScheduleGroupAttendances extends ManageRecords
         return [
             ActionGroup::make([
                 Actions\Action::make('create_schedule_production')
-                ->color('info')
-                ->outlined()
-                ->form([
-                    Section::make('Range Date Setup')
-                        ->schema([
-                            DatePicker::make('start')->required(),
-                            DatePicker::make('end')->required(),
-                        ])->columns(2),
-                    Repeater::make('group_setup')
-                        ->schema([
-                            Select::make('group')
-                                ->options(GroupAttendance::where('pattern_name', 'production')->get()->pluck('name', 'id'))
-                                ->searchable()
-                                ->preload()
-                                ->required(),
-                            Select::make('time')
-                                ->label('Select the previous shift')
-                                ->options(TimeAttendance::where('pattern_name', 'production')->get()->pluck('type', 'id'))
-                                ->required(),
-                            Select::make('config')
-                                ->options([
-                                    'rolling' => 'Rolling',
-                                ])
-                                ->required(),
-                        ])
-                        ->columns(3)
-                ])
-                ->action(function (array $data) {
-                    $startDate = new DateTime($data['start']);
-                    $endDate = new DateTime($data['end']);
-                    $interval = new DateInterval('P1D');
-                    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
-                    $dates = [];
-                    foreach ($period as $date) {
-                        $dates[] = $date->format('Y-m-d');
-                    }
-                    $insert_data = [];
-                    foreach ($data['group_setup'] as $k) {
-                        $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
-                        $insert_data[] = $hasilPergantian;
-                    }
-                    $mergedArray = array_merge(...$insert_data);
-                    $save = ScheduleGroupAttendance::insert($mergedArray);
-                    return $save;
-                }),
+                    ->color('info')
+                    ->outlined()
+                    ->form([
+                        Section::make('Range Date Setup')
+                            ->schema([
+                                DatePicker::make('start')->required(),
+                                DatePicker::make('end')->required(),
+                            ])->columns(2),
+                        Repeater::make('group_setup')
+                            ->schema([
+                                Select::make('group')
+                                    ->options(GroupAttendance::where('pattern_name', 'production')->get()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+                                Select::make('time')
+                                    ->label('Select the previous shift')
+                                    ->options(TimeAttendance::where('pattern_name', 'production')->get()->pluck('type', 'id'))
+                                    ->required(),
+                                Select::make('config')
+                                    ->options([
+                                        'rolling' => 'Rolling',
+                                    ])
+                                    ->required(),
+                            ])
+                            ->columns(3)
+                    ])
+                    ->action(function (array $data) {
+                        $startDate = new DateTime($data['start']);
+                        $endDate = new DateTime($data['end']);
+                        $interval = new DateInterval('P1D');
+                        $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                        $dates = [];
+                        foreach ($period as $date) {
+                            $dates[] = $date->format('Y-m-d');
+                        }
+                        $insert_data = [];
+                        foreach ($data['group_setup'] as $k) {
+                            $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
+                            $insert_data[] = $hasilPergantian;
+                        }
+                        $mergedArray = array_merge(...$insert_data);
+                        $save = ScheduleGroupAttendance::insert($mergedArray);
+                        return $save;
+                    }),
                 Actions\Action::make('create_schedule_maintenance')
-                ->color('danger')
-                ->outlined()
-                ->form([
-                    Section::make('Range Date Setup')
-                        ->schema([
-                            DatePicker::make('start')->required(),
-                            DatePicker::make('end')->required(),
-                        ])->columns(2),
-                    Repeater::make('group_setup')
-                        ->schema([
-                            Select::make('group')
-                                ->options(GroupAttendance::where('pattern_name', 'maintenance')->get()->pluck('name', 'id'))
-                                ->searchable()
-                                ->preload()
-                                ->required(),
-                            Select::make('time')
-                                ->label('Select the previous shift')
-                                ->options(TimeAttendance::where('pattern_name', 'maintenance')->get()->pluck('type', 'id'))
-                                ->required(),
-                            Select::make('config')
-                                ->options([
-                                    'rolling' => 'Rolling',
-                                ])
-                                ->required(),
-                            Select::make('day_off')
-                                ->options($optionsHariSeninSampaiMinggu)
-                                ->required(),
-                        ])
-                        ->columns(4)
-                ])
-                ->action(function (array $data) {
-                    // Inisialisasi tanggal mulai dan akhir
-                    $startDate = Carbon::parse($data['start']);
-                    $endDate = Carbon::parse($data['end']);
-                    $interval = new DateInterval('P1D');
-                    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
-                    $dates = [];
-                    foreach ($period as $date) {
-                        $dates[] = $date->format('Y-m-d');
-                    }
-                    $insert_data = [];
-                    foreach ($data['group_setup'] as $k) {
-                        $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $k['day_off']);
-                        $insert_data[] = $hasilPergantian;
-                    }
-                    $mergedArray = array_merge(...$insert_data);
-                    $save = ScheduleGroupAttendance::insert($mergedArray);
-                    return $save;
-                }),
+                    ->color('danger')
+                    ->outlined()
+                    ->form([
+                        Section::make('Range Date Setup')
+                            ->schema([
+                                DatePicker::make('start')->required(),
+                                DatePicker::make('end')->required(),
+                            ])->columns(2),
+                        Repeater::make('group_setup')
+                            ->schema([
+                                Select::make('group')
+                                    ->options(GroupAttendance::where('pattern_name', 'maintenance')->get()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+                                Select::make('time')
+                                    ->label('Select the previous shift')
+                                    ->options(TimeAttendance::where('pattern_name', 'maintenance')->get()->pluck('type', 'id'))
+                                    ->required(),
+                                Select::make('config')
+                                    ->options([
+                                        'rolling' => 'Rolling',
+                                    ])
+                                    ->required(),
+                                Select::make('day_off')
+                                    ->options($optionsHariSeninSampaiMinggu)
+                                    ->required(),
+                            ])
+                            ->columns(4)
+                    ])
+                    ->action(function (array $data) {
+                        // Inisialisasi tanggal mulai dan akhir
+                        $startDate = Carbon::parse($data['start']);
+                        $endDate = Carbon::parse($data['end']);
+                        $interval = new DateInterval('P1D');
+                        $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                        $dates = [];
+                        foreach ($period as $date) {
+                            $dates[] = $date->format('Y-m-d');
+                        }
+                        $insert_data = [];
+                        foreach ($data['group_setup'] as $k) {
+                            $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $k['day_off']);
+                            $insert_data[] = $hasilPergantian;
+                        }
+                        $mergedArray = array_merge(...$insert_data);
+                        $save = ScheduleGroupAttendance::insert($mergedArray);
+                        return $save;
+                    }),
                 Actions\Action::make('create_schedule_warehouse')
-                ->color('warning')
-                ->outlined()
-                ->form([
-                    Section::make('Range Date Setup')
-                        ->schema([
-                            DatePicker::make('start')->required(),
-                            DatePicker::make('end')->required(),
-                        ])->columns(2),
-                    Repeater::make('group_setup')
-                        ->schema([
-                            Select::make('group')
-                                ->options(GroupAttendance::where('pattern_name', 'warehouse')->get()->pluck('name', 'id'))
-                                ->searchable()
-                                ->preload()
-                                ->required(),
-                            Select::make('time')
-                                ->label('Select the previous shift')
-                                ->options(TimeAttendance::where('pattern_name', 'warehouse')->get()->pluck('type', 'id'))
-                                ->required(),
-                            Select::make('config')
-                                ->options([
-                                    'rolling' => 'Rolling',
-                                ])
-                                ->required(),
-                        ])
-                        ->columns(3)
-                ])
-                ->action(function (array $data) {
-                    $startDate = new DateTime($data['start']);
-                    $endDate = new DateTime($data['end']);
-                    $interval = new DateInterval('P1D');
-                    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
-                    $dates = [];
-                    foreach ($period as $date) {
-                        $dates[] = $date->format('Y-m-d');
-                    }
-                    $insert_data = [];
-                    foreach ($data['group_setup'] as $k) {
-                        $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
-                        $insert_data[] = $hasilPergantian;
-                    }
-                    $mergedArray = array_merge(...$insert_data);
-                    $save = ScheduleGroupAttendance::insert($mergedArray);
-                    return $save;
-                }),
+                    ->color('warning')
+                    ->outlined()
+                    ->form([
+                        Section::make('Range Date Setup')
+                            ->schema([
+                                DatePicker::make('start')->required(),
+                                DatePicker::make('end')->required(),
+                            ])->columns(2),
+                        Repeater::make('group_setup')
+                            ->schema([
+                                Select::make('group')
+                                    ->options(GroupAttendance::where('pattern_name', 'warehouse')->get()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+                                Select::make('time')
+                                    ->label('Select the previous shift')
+                                    ->options(TimeAttendance::where('pattern_name', 'warehouse')->get()->pluck('type', 'id'))
+                                    ->required(),
+                                Select::make('config')
+                                    ->options([
+                                        'rolling' => 'Rolling',
+                                    ])
+                                    ->required(),
+                            ])
+                            ->columns(3)
+                    ])
+                    ->action(function (array $data) {
+                        $startDate = new DateTime($data['start']);
+                        $endDate = new DateTime($data['end']);
+                        $interval = new DateInterval('P1D');
+                        $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                        $dates = [];
+                        foreach ($period as $date) {
+                            $dates[] = $date->format('Y-m-d');
+                        }
+                        $insert_data = [];
+                        foreach ($data['group_setup'] as $k) {
+                            $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
+                            $insert_data[] = $hasilPergantian;
+                        }
+                        $mergedArray = array_merge(...$insert_data);
+                        $save = ScheduleGroupAttendance::insert($mergedArray);
+                        return $save;
+                    }),
                 Actions\Action::make('create_schedule_office')
-                ->color('primary')
-                ->outlined()
-                ->form([
-                    Section::make('Range Date Setup')
-                        ->schema([
-                            DatePicker::make('start')->required(),
-                            DatePicker::make('end')->required(),
-                        ])->columns(2),
-                    Repeater::make('group_setup')
-                        ->schema([
-                            Select::make('group')
-                                ->options(GroupAttendance::where('pattern_name', 'office')->get()->pluck('name', 'id'))
-                                ->searchable()
-                                ->preload()
-                                ->required(),
-                            Select::make('time')
-                                ->label('Select the previous shift')
-                                ->options(TimeAttendance::where('pattern_name', 'office')->get()->pluck('type', 'id'))
-                                ->required(),
-                            Select::make('config')
-                                ->options([
-                                    'continue' => 'Continue',
-                                ])
-                                ->required(),
-                        ])
-                        ->columns(3)
-                ])
-                ->action(function (array $data) {
-                    $startDate = new DateTime($data['start']);
-                    $endDate = new DateTime($data['end']);
-                    $interval = new DateInterval('P1D');
-                    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
-                    $dates = [];
-                    foreach ($period as $date) {
-                        $dates[] = $date->format('Y-m-d');
-                    }
-                    $insert_data = [];
-                    foreach ($data['group_setup'] as $k) {
-                        $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
-                        $insert_data[] = $hasilPergantian;
-                    }
-                    $mergedArray = array_merge(...$insert_data);
-                    $save = ScheduleGroupAttendance::insert($mergedArray);
-                    return $save;
-                }),
+                    ->color('primary')
+                    ->outlined()
+                    ->form([
+                        Section::make('Range Date Setup')
+                            ->schema([
+                                DatePicker::make('start')->required(),
+                                DatePicker::make('end')->required(),
+                            ])->columns(2),
+                        Repeater::make('group_setup')
+                            ->schema([
+                                Select::make('group')
+                                    ->options(GroupAttendance::where('pattern_name', 'office')->get()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+                                Select::make('time')
+                                    ->label('Select the previous shift')
+                                    ->options(TimeAttendance::where('pattern_name', 'office')->get()->pluck('type', 'id'))
+                                    ->required(),
+                                Select::make('config')
+                                    ->options([
+                                        'continue' => 'Continue',
+                                    ])
+                                    ->required(),
+                            ])
+                            ->columns(3)
+                    ])
+                    ->action(function (array $data) {
+                        $startDate = new DateTime($data['start']);
+                        $endDate = new DateTime($data['end']);
+                        $interval = new DateInterval('P1D');
+                        $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                        $dates = [];
+                        foreach ($period as $date) {
+                            $dates[] = $date->format('Y-m-d');
+                        }
+                        $insert_data = [];
+                        foreach ($data['group_setup'] as $k) {
+                            $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], null);
+                            $insert_data[] = $hasilPergantian;
+                        }
+                        $mergedArray = array_merge(...$insert_data);
+                        $save = ScheduleGroupAttendance::insert($mergedArray);
+                        return $save;
+                    }),
             ])
             ->label('More create schedule actions')
             ->icon('heroicon-c-plus-circle')
             ->color('primary')
-            ->button()
+            ->button(),
+            Actions\Action::make('import')
+                ->label('Import From Biotime Attendance')
+                ->icon('fas-file-excel')
+                ->outlined()
+                ->button()
+                ->form([
+                    Section::make('Import From .xlsx Biotime')
+                        ->description('Make sure you have updated all user data and updated the attendance user group first to help the system validation process when doing this process!')
+                        ->schema([
+                            FileUpload::make('file_excel')
+                                ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
+                                ->storeFiles(false)
+                                ->required(),
+                        ])
+                ])
+                ->action(function (array $data): void {
+                    $file = $data['file_excel'];
+                    $path = $file->getRealPath();
+                    $spreadsheet = IOFactory::load($path);
+                    // Get the active sheet
+                    $sheet = $spreadsheet->getActiveSheet()->toArray();
+                    $originalArray = array_slice($sheet, 2);
+                    $array = $originalArray;
+                    ProcessImportScheduleFromBiotime::dispatch($array);
+                })
         ];
+    }
+
+    function transformData($data) {
+        $header = $data[0];
+        $result = [];
+    
+        for ($i = 1; $i < count($data); $i++) {
+            $employeeData = $data[$i];
+            $employee = [
+                'nama' => $employeeData[1], // Assuming 'First Name' is at index 1
+                'id' => $employeeData[0], // Assuming 'Employee ID' is at index 0
+                'tanggal' => [],
+                'jadwal' => [],
+            ];
+    
+            for ($j = 3; $j < count($employeeData); $j++) { // Assuming data starts from index 3
+                $employee['tanggal'][] = $header[$j];
+                $employee['jadwal'][] = $employeeData[$j];
+            }
+    
+            $result[] = $employee;
+        }
+    
+        return $result;
     }
 
     public function gantiShiftIdPadaSenin($tanggalArray, int $currentShift, int $groupId, $config, $dayoff) {

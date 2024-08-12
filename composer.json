@@ -10,6 +10,7 @@
         "aymanalhattami/filament-slim-scrollbar": "^2.0",
         "bezhansalleh/filament-panel-switch": "^1.0",
         "bezhansalleh/filament-shield": "^3.2",
+        "croustibat/filament-jobs-monitor": "^2.5",
         "filament/filament": "3.2.57",
         "filament/notifications": "^3.2",
         "flowframe/laravel-trend": "^0.2.0",
