@@ -395,27 +395,30 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                                 \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rowData[15])->format('Y-m-d') : null;
 
                             // Masukkan data ke dalam array dengan key yang sesuai
-                            $employeeData[] = [
-                                'nik' => $rowData[0],
-                                'nama' => $rowData[1],
-                                'dept' => $rowData[2],
-                                'position' => $rowData[3],
-                                'level' => $rowData[4],
-                                'atasan' => $rowData[5],
-                                'grade' => $rowData[6],
-                                'emp_status' => $rowData[7],
-                                'area_kerja' => $rowData[8],
-                                'tgl_bergabung' => $joinDate,
-                                'no_ktp' => $rowData[10],
-                                'no_npwp' => $rowData[11],
-                                'no_hp' => $rowData[12],
-                                'email' => $rowData[13],
-                                'placebirth' => $rowData[14],
-                                'datebirth' => $birthDate,
-                                'religion' => $rowData[16],
-                                'gender' => $rowData[17],
-                                'status_pernikahan' => $rowData[18],
-                            ];
+                            if(!is_null($rowData[0])||!empty($rowData[0])){
+                                $employeeData[] = [
+                                    'nik' => $rowData[0],
+                                    'nama' => $rowData[1],
+                                    'dept' => $rowData[2],
+                                    'position' => $rowData[3],
+                                    'level' => $rowData[4],
+                                    'atasan' => $rowData[5],
+                                    'grade' => $rowData[6],
+                                    'emp_status' => $rowData[7],
+                                    'area_kerja' => $rowData[8],
+                                    'tgl_bergabung' => $joinDate,
+                                    'no_ktp' => $rowData[10],
+                                    'no_npwp' => $rowData[11],
+                                    'no_hp' => $rowData[12],
+                                    'email' => $rowData[13],
+                                    'placebirth' => $rowData[14],
+                                    'datebirth' => $birthDate,
+                                    'religion' => $rowData[16],
+                                    'gender' => $rowData[17],
+                                    'status_pernikahan' => $rowData[18],
+                                ];
+                            }
+                            continue;
                         }
                         ProcessImportUserBiotime::dispatch($employeeData);
                         Notification::make()

@@ -54,7 +54,7 @@ class ProcessImportUserBiotime implements ShouldQueue
                 'status_pernikahan' => 'nullable|string|in:MENIKAH,BELUM MENIKAH', 
             ]);
             if ($validator->fails()) {
-                Log::error('Validation failed for chunk', ['errors' => $validator->errors()]);
+                Log::error('Validation failed for chunk users import biotime excel', ['errors' => $validator->errors()]);
                 return $validator->errors();
             }
             foreach ($chunk->toArray() as $k) {
@@ -66,6 +66,6 @@ class ProcessImportUserBiotime implements ShouldQueue
     {
         // Tangani kegagalan job di sini
         Log::error('Job failed', ['exception' => $exception->getMessage()]);
-        dd($exception);
+        return $exception->getMessage();
     }
 }
