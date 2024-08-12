@@ -380,7 +380,7 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                         // Loop melalui baris data (mulai dari baris kedua jika baris pertama adalah header)
                         foreach ($worksheet->getRowIterator(2) as $row) {
                             $cellIterator = $row->getCellIterator();
-                            $cellIterator->setIterateOnlyExistingCells(false); // Loop semua sel dalam baris
+                            $cellIterator->setIterateOnlyExistingCells(true); // Loop semua sel dalam baris
 
                             $rowData = [];
                             foreach ($cellIterator as $cell) {
