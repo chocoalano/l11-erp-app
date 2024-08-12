@@ -66,5 +66,6 @@ class ProcessImportUserBiotime implements ShouldQueue
     {
         // Tangani kegagalan job di sini
         Log::error('Job failed', ['exception' => $exception->getMessage()]);
+        dd($exception);
     }
 }
