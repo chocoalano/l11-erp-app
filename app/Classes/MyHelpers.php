@@ -252,9 +252,8 @@ class MyHelpers
             $user->employe()->updateOrCreate($dataEmp);
     
             return $user;
-        } catch (\Throwable $th) {
-            //throw $th;
-            return $th;
+        } catch (\Exception $e) {
+            throw $e;
         }
     }
     function addUserGroup(array $data)

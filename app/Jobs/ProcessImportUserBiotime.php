@@ -31,7 +31,7 @@ class ProcessImportUserBiotime implements ShouldQueue
     public function handle(): void
     {
         $helper = new \App\Classes\MyHelpers();
-        collect($this->data)->chunk(100)->each(function ($chunk) use ($helper) {
+        collect($this->data)->chunk(50)->each(function ($chunk) use ($helper) {
             $validator = Validator::make($chunk->toArray(), [
                 'nik' => 'required|numeric|digits:8',
                 'nama' => 'required|string|max:255',
