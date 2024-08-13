@@ -265,7 +265,18 @@ class ManageScheduleGroupAttendances extends ManageRecords
                     $sheet = $spreadsheet->getActiveSheet()->toArray();
                     $originalArray = array_slice($sheet, 2);
                     $array = $originalArray;
-                    ProcessImportScheduleFromBiotime::dispatch($array);
+                    $cek = ProcessImportScheduleFromBiotime::dispatch($array);
+                    if($cek){
+                        Notification::make()
+                        ->title('Saved successfully')
+                        ->success()
+                        ->send();
+                    }else{
+                        Notification::make()
+                        ->title('Error unsuccessfully')
+                        ->success()
+                        ->send();
+                    }
                 })
         ];
     }

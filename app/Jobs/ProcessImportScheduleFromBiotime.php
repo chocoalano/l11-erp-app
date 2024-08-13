@@ -3,23 +3,24 @@
 namespace App\Jobs;
 
 use App\Models\ScheduleGroupAttendance;
-use DateInterval;
-use DatePeriod;
-use DateTime;
+use App\Models\User;
+use App\Classes\MyHelpers;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Foundation\Queue\Queueable as QueueQueueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class ProcessImportScheduleFromBiotime implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, QueueQueueable, SerializesModels;
+
     protected $data;
     public $tries = 5; // Set jumlah maksimal percobaan
     public $timeout = 0; // Set waktu timeout dalam detik
+
     /**
      * Create a new job instance.
      */
@@ -31,50 +32,58 @@ class ProcessImportScheduleFromBiotime implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(): bool
     {
-        $helper = new \App\Classes\MyHelpers();
-        collect($this->data)->chunk(5)->each(function ($chunk) use ($helper) {
-            $data = $chunk->toArray();
-            // Mendapatkan tanggal awal dan akhir bulan saat ini
-            $startDate = Carbon::now()->startOfMonth();
-            $endDate = Carbon::now()->endOfMonth();
-            foreach ($data as $item) {
-                $nik = $item[0];
-                $scheduleData = array_slice($item, 4); // Ambil data jadwal mulai dari indeks ke-4
-                $currentDate = $startDate->copy();
-                foreach ($scheduleData as $index => $jam) {
-                    if ($jam !== 'Day Off') { // Skip entri dengan tipe "Day Off"
-                        $cekUser = $user = \App\Models\User::with('employe', 'group_attendance')->where('nik', $nik)->first();
-                        $user = $cekUser;
-                        $emp = $cekUser->employe;
-                        $group = $cekUser->group_attendance;
-                        $cekJam = $helper->syncJamJadwalKerja($emp->organization_id, $jam);
-                        if (!is_null($emp) && !is_null($group)) {
-                            $fetch = [
-                                'group_attendance_id'=>$group[0]->id,
-                                'user_id'=>$user->id,
-                                'time_attendance_id'=>$cekJam->id,
-                                'date'=>$currentDate->toDateString()
-                            ];
-                            ScheduleGroupAttendance::updateOrCreate($fetch, $fetch);
+        $helper = new MyHelpers();
+        $startDate = Carbon::now()->startOfMonth();
+        $endDate = Carbon::now()->endOfMonth();
+
+        try {
+            collect($this->data)->chunk(10)->each(function ($chunk) use ($helper, $startDate, $endDate) {
+                foreach ($chunk as $item) {
+                    $nik = $item[0];
+                    $scheduleData = array_slice($item, 4);
+                    $currentDate = $startDate->copy();
+                    
+                    $user = User::with('employe', 'group_attendance')->where('nik', $nik)->first();
+
+                    if (!$user || !$user->employe || !$user->group_attendance) {
+                        Log::warning('User or related data not found', ['nik' => $nik]);
+                        continue;
+                    }
+
+                    foreach ($scheduleData as $jam) {
+                        if ($jam !== 'Day Off') {
+                            $cekJam = $helper->syncJamJadwalKerja($user->employe->organization_id, $jam);
+
+                            ScheduleGroupAttendance::updateOrCreate([
+                                'group_attendance_id' => $user->group_attendance->first()->id,
+                                'user_id' => $user->id,
+                                'time_attendance_id' => $cekJam->id,
+                                'date' => $currentDate->toDateString()
+                            ]);
+
+                            $currentDate->addDay();
+                            if ($currentDate->greaterThan($endDate)) {
+                                break;
+                            }
                         }
                     }
-                    // Tambahkan satu hari ke currentDate
-                    $currentDate->addDay();
-                    // Hentikan jika sudah melewati akhir bulan
-                    if ($currentDate->greaterThan($endDate)) {
-                        break;
-                    }
                 }
-            }
-        });
+            });
+
+            return true; // Return true jika proses berhasil
+        } catch (\Exception $e) {
+            Log::error('An error occurred while processing the schedule', [
+                'exception' => $e->getMessage()
+            ]);
+
+            return false; // Return false jika terjadi kesalahan
+        }
     }
 
     public function failed(\Exception $exception)
     {
-        // Tangani kegagalan job di sini
         Log::error('Job failed', ['exception' => $exception->getMessage()]);
-        dd($exception);
     }
 }
