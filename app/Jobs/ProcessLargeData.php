@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Classes\MyHelpers;
 use App\Models\Attendance;
+use App\Models\ScheduleGroupAttendance;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -16,9 +18,11 @@ use Illuminate\Support\Facades\Validator;
 class ProcessLargeData implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    
     protected $data;
-    public $tries = 5; // Set jumlah maksimal percobaan
-    public $timeout = 300; // Set waktu timeout dalam detik
+    public $tries = 3; // Set jumlah maksimal percobaan
+    public $timeout = 0; // Set waktu timeout dalam detik
+    
     /**
      * Create a new job instance.
      */
@@ -48,28 +52,31 @@ class ProcessLargeData implements ShouldQueue
 
             if ($validator->fails()) {
                 Log::error('Validation failed for chunk', ['errors' => $validator->errors()]);
-                return $validator->errors();
+                return;
             }
+
             foreach ($chunk->toArray() as $k) {
                 $date = Carbon::parse($k['punch_time']);
                 $time = $date->format('H:i:s');
-                $user = \App\Models\User::with('employe', 'group_attendance')->where('nik', $k['emp_code'])->first();
-                // VALIDASI USER::ENDED
-                if (!is_null($user->group_attendance)) {
-                    $cekJadwal = \App\Models\ScheduleGroupAttendance::where([
-                        'group_attendance_id'=>$user->group_attendance[0]->id,
-                        'user_id'=>$user->id,
-                        'date'=>$date->format('Y-m-d')
+                $user = User::with('group_attendance')->where('nik', $k['emp_code'])->first();
+
+                // Validate user existence and group_attendance relationship
+                if ($user && $user->group_attendance) {
+                    $cekJadwal = ScheduleGroupAttendance::where([
+                        'group_attendance_id' => $user->group_attendance[0]->id,
+                        'user_id' => $user->id,
+                        'date' => $date->format('Y-m-d')
                     ])->first();
+
                     if ($cekJadwal) {
-                        $helper = new \App\Classes\MyHelpers();
-                        $validate = $helper->cekStatusTelatAbsen($date->format('Y-m-d'), $cekJadwal['group_attendance_id'], $time, (int)$k['punch_state'] < 1 ? 'in' : 'out');
-                        $status = $validate['status'];
+                        $status = $helper->cekStatusTelatAbsen($date->format('Y-m-d'), $cekJadwal['group_attendance_id'], $time, (int)$k['punch_state'] < 1 ? 'in' : 'out')['status'];
+                        
                         $data = [
                             'nik' => $k['emp_code'],
                             'schedule_group_attendances_id' => (int)$cekJadwal['id'],
                             'date' => $date->format('Y-m-d'),
                         ];
+
                         if ((int)$k['punch_state'] < 1) {
                             $data = array_merge($data, [
                                 'lat_in' => (double)'-6.1749639',
@@ -77,15 +84,6 @@ class ProcessLargeData implements ShouldQueue
                                 'time_in' => $time,
                                 'status_in' => $status
                             ]);
-                        
-                            \App\Models\Attendance::updateOrCreate(
-                                [
-                                    'nik' => $k['emp_code'],
-                                    'date' => $date->format('Y-m-d'),
-                                    'schedule_group_attendances_id' => (int)$cekJadwal['id']
-                                ],
-                                $data
-                            );
                         } else {
                             $data = array_merge($data, [
                                 'lat_out' => (double)'-6.1749639',
@@ -93,28 +91,30 @@ class ProcessLargeData implements ShouldQueue
                                 'time_out' => $time,
                                 'status_out' => $status
                             ]);
-                        
-                            \App\Models\Attendance::updateOrCreate(
-                                [
-                                    'nik' => $k['emp_code'],
-                                    'date' => $date->format('Y-m-d'),
-                                    'schedule_group_attendances_id' => (int)$cekJadwal['id']
-                                ],
-                                $data
-                            );
                         }
+
+                        Attendance::updateOrCreate(
+                            [
+                                'nik' => $k['emp_code'],
+                                'date' => $date->format('Y-m-d'),
+                                'schedule_group_attendances_id' => (int)$cekJadwal['id']
+                            ],
+                            $data
+                        );
                     }
                     continue;
-                }else{
-                    continue;
                 }
+                continue;
             }
         });
     }
+
+    /**
+     * Handle a job failure.
+     */
     public function failed(\Exception $exception)
     {
         // Tangani kegagalan job di sini
         Log::error('Job failed', ['exception' => $exception->getMessage()]);
-        dd($exception);
     }
 }
