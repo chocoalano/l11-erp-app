@@ -6,7 +6,7 @@ use App\Filament\Resources\UserManagementResource\Pages;
 use App\Filament\Resources\UserManagementResource\RelationManagers;
 use App\Models\Organization;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -374,57 +374,71 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                     ->action(function (array $data): void {
                         $file = $data['fileImport'];
                         $path = $file->getRealPath();
-                        $ss = IOFactory::load($path);
-                        $worksheet = $ss->getActiveSheet();
-                        $helper = new \App\Classes\MyHelpers();
+                        $spreadsheet = IOFactory::load($path);
+                        $worksheet = $spreadsheet->getActiveSheet();
+                        $employeeData = [];
+
                         // Loop melalui baris data (mulai dari baris kedua jika baris pertama adalah header)
                         foreach ($worksheet->getRowIterator(2) as $row) {
                             $cellIterator = $row->getCellIterator();
-                            $cellIterator->setIterateOnlyExistingCells(true); // Loop semua sel dalam baris
-
+                            $cellIterator->setIterateOnlyExistingCells(false); // Loop semua sel dalam baris, termasuk sel yang kosong
                             $rowData = [];
                             foreach ($cellIterator as $cell) {
                                 $rowData[] = $cell->getValue();
                             }
 
                             // Validasi dan konversi tanggal
-                            $joinDate = is_numeric($rowData[9]) ? 
-                                \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rowData[9])->format('Y-m-d') : null;
+                            $joinDate = (isset($rowData[9]) && is_numeric($rowData[9])) ? 
+                                Date::excelToDateTimeObject($rowData[9])->format('Y-m-d') : null;
+                            $birthDate = (isset($rowData[15]) && is_numeric($rowData[15])) ? 
+                                Date::excelToDateTimeObject($rowData[15])->format('Y-m-d') : null;
 
-                            $birthDate = is_numeric($rowData[16]) ? 
-                                \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($rowData[15])->format('Y-m-d') : null;
-
-                            // Masukkan data ke dalam array dengan key yang sesuai
-                            if(!is_null($rowData[0])||!empty($rowData[0])){
-                                $k = [
-                                    'nik' => $rowData[0],
-                                    'nama' => $rowData[1],
-                                    'dept' => $rowData[2],
-                                    'position' => $rowData[3],
-                                    'level' => $rowData[4],
-                                    'atasan' => $rowData[5],
-                                    'grade' => $rowData[6],
-                                    'emp_status' => $rowData[7],
-                                    'area_kerja' => $rowData[8],
-                                    'tgl_bergabung' => $joinDate,
-                                    'no_ktp' => $rowData[10],
-                                    'no_npwp' => $rowData[11],
-                                    'no_hp' => $rowData[12],
-                                    'email' => $rowData[13],
-                                    'placebirth' => $rowData[14],
-                                    'datebirth' => $birthDate,
-                                    'religion' => $rowData[16],
-                                    'gender' => $rowData[17],
-                                    'status_pernikahan' => $rowData[18],
-                                ];
-                                $helper->validateUserExist($k);
+                            // Periksa apakah baris memiliki data yang terisi
+                            $isRowEmpty = true;
+                            foreach ($rowData as $data) {
+                                if (!empty($data)) {
+                                    $isRowEmpty = false;
+                                    break;
+                                }
                             }
-                            continue;
+
+                            // Masukkan data ke dalam array dengan key yang sesuai hanya jika baris tidak kosong
+                            if (!$isRowEmpty) {
+                                $employeeData[] = [
+                                    'nik' => $rowData[0] ?? null,
+                                    'nama' => $rowData[1] ?? null,
+                                    'dept' => $rowData[2] ?? null,
+                                    'position' => $rowData[3] ?? null,
+                                    'level' => $rowData[4] ?? null,
+                                    'atasan' => $rowData[5] ?? null,
+                                    'grade' => $rowData[6] ?? null,
+                                    'emp_status' => $rowData[7] ?? null,
+                                    'area_kerja' => $rowData[8] ?? null,
+                                    'tgl_bergabung' => $joinDate,
+                                    'no_ktp' => $rowData[10] ?? null,
+                                    'no_npwp' => $rowData[11] ?? null,
+                                    'no_hp' => $rowData[12] ?? null,
+                                    'email' => $rowData[13] ?? null,
+                                    'placebirth' => $rowData[14] ?? null,
+                                    'datebirth' => $birthDate,
+                                    'religion' => $rowData[16] ?? null,
+                                    'gender' => $rowData[17] ?? null,
+                                    'status_pernikahan' => $rowData[18] ?? null,
+                                ];
+                            }
                         }
-                        Notification::make()
-                            ->title('Import successfully')
-                            ->success()
-                            ->send();
+                        $helper = new \App\Classes\MyHelpers();
+                        foreach ($employeeData as $k) {
+                            $insert = $helper->validateUserExist($k);
+                            if($insert){
+                                continue;
+                            }else{
+                                Notification::make()
+                                    ->title($insert->getmessage())
+                                    ->danger()
+                                    ->send();
+                            }
+                        }
                     }),
             // END FOR BUTTON IMPORT
             // START FOR BUTTON EXPORT DATA TO .XLSX

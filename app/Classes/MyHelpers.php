@@ -13,8 +13,10 @@ use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Log;
 
 class MyHelpers
 {
@@ -189,9 +191,42 @@ class MyHelpers
         // Cari dan kembalikan data time attendance sesuai kondisi $where
         return \App\Models\TimeAttendance::where($where)->first();
     }
+    function extractPhoneNumbers($input) {
+        // Define the regex pattern to match Indonesian phone numbers
+        $pattern = '/\b\d{10,13}\b/';
+        // Find all matches in the input string
+        preg_match_all($pattern, $input, $matches);
+        // Return the first match found
+        return $matches[0];
+    }
     function validateUserExist(array $data)
     {
         try {
+            $validator = Validator::make($data, [
+                'nik' => 'required|numeric|digits:8',
+                'nama' => 'required|string|max:255',
+                'dept' => 'required|string|max:50',
+                'position' => 'required|string|max:50',
+                'level' => 'required|string|max:50',
+                'atasan' => 'required',
+                'grade' => 'required|string|max:50',
+                'emp_status' => 'required|string|in:AKTIF,TIDAK AKTIF',
+                'area_kerja' => 'required|string|max:50',
+                'tgl_bergabung' => 'required|date_format:Y-m-d',
+                'no_ktp' => 'required|numeric|digits:16',
+                // 'no_npwp' => 'nullable|string|regex:/^\d{9}-\d{3}\.\d{3}$/',
+                'no_npwp' => 'required',
+                'no_hp' => 'required|digits_between:10,15',
+                'email' => 'required|email|max:255',
+                'placebirth' => 'required|string|max:100',
+                'datebirth' => 'nullable|date_format:Y-m-d',
+                'religion' => 'required|string|max:50',
+                'gender' => 'required|string|in:LAKI-LAKI,PEREMPUAN',
+                'status_pernikahan' => 'nullable|string|in:MENIKAH,LAJANG,CERAI', 
+            ]);
+            if ($validator->fails()) {
+                return $validator->errors()->toArray();
+            }
             $religionMap = [
                 'KHATOLIK' => 'catholic',
                 'PROTESTAN' => 'protestant',
@@ -231,9 +266,9 @@ class MyHelpers
                 ['description' => $data['level']]
             );
     
-            $atasanName = $data['atasan'] === 'Agustinus' ? 'Tubagus Angga Dheviests' : $data['atasan'];
+            $atasanName = $data['atasan'] === 'Agustinus' || is_null($data['atasan']) || empty($data['atasan']) ? '24020001' : $data['atasan'];
     
-            $appline = User::where('name', $atasanName)->firstOrFail();
+            $appline = User::where('nik', $atasanName)->firstOrFail();
             $appmngr = $appline;
     
             $dataEmp = [
@@ -250,10 +285,10 @@ class MyHelpers
             ];
     
             $user->employe()->updateOrCreate($dataEmp);
-    
             return $user;
         } catch (\Exception $e) {
-            throw $e;
+            Log::error('Validation errors', ['errors' => $e]);
+            return $e;
         }
     }
     function addUserGroup(array $data)
