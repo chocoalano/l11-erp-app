@@ -392,7 +392,6 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                                 Date::excelToDateTimeObject($rowData[9])->format('Y-m-d') : null;
                             $birthDate = (isset($rowData[15]) && is_numeric($rowData[15])) ? 
                                 Date::excelToDateTimeObject($rowData[15])->format('Y-m-d') : null;
-
                             // Periksa apakah baris memiliki data yang terisi
                             $isRowEmpty = true;
                             foreach ($rowData as $data) {
@@ -401,7 +400,6 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                                     break;
                                 }
                             }
-
                             // Masukkan data ke dalam array dengan key yang sesuai hanya jika baris tidak kosong
                             if (!$isRowEmpty) {
                                 $employeeData[] = [

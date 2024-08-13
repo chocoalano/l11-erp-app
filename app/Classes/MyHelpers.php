@@ -288,6 +288,11 @@ class MyHelpers
 
             switch ($key['department']) {
                 case 'PRODUKSI':
+                    if ($key['jam'] === 'Shift 1') {
+                        $groups['groupA'][] = $u->id;
+                    } else {
+                        $groups['groupB'][] = $u->id;
+                    }
                 case 'CLEANING SERVICE':
                     if ($key['jam'] === 'Shift 1') {
                         $groups['groupA'][] = $u->id;
