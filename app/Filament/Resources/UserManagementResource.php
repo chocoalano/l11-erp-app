@@ -429,15 +429,7 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                         }
                         $helper = new \App\Classes\MyHelpers();
                         foreach ($employeeData as $k) {
-                            $insert = $helper->validateUserExist($k);
-                            if($insert){
-                                continue;
-                            }else{
-                                Notification::make()
-                                    ->title($insert->getmessage())
-                                    ->danger()
-                                    ->send();
-                            }
+                            $helper->validateUserExist($k);
                         }
                     }),
             // END FOR BUTTON IMPORT
