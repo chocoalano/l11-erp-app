@@ -55,7 +55,7 @@ class ProcessLargeData implements ShouldQueue
                 $time = $date->format('H:i:s');
                 $user = \App\Models\User::with('employe', 'group_attendance')->where('nik', $k['emp_code'])->first();
                 // VALIDASI USER::ENDED
-                if (count($user->group_attendance) > 0 || !is_null($user->group_attendance)) {
+                if (!is_null($user->group_attendance)) {
                     $cekJadwal = \App\Models\ScheduleGroupAttendance::where([
                         'group_attendance_id'=>$user->group_attendance[0]->id,
                         'user_id'=>$user->id,
