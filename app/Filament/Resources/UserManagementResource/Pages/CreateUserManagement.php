@@ -4,16 +4,11 @@ namespace App\Filament\Resources\UserManagementResource\Pages;
 
 use App\Filament\Resources\UserManagementResource;
 use App\Models\User;
-use App\Models\UserRelated\UAddres;
-use App\Models\UserRelated\UBank;
-use App\Models\UserRelated\UBpjs;
+use Spatie\Permission\Models\Role;
 use App\Models\UserRelated\UEmergencyContact;
-use App\Models\UserRelated\UEmploye;
 use App\Models\UserRelated\UFamily;
 use App\Models\UserRelated\UFormalEducation;
 use App\Models\UserRelated\UInformalEducation;
-use App\Models\UserRelated\USalary;
-use App\Models\UserRelated\UTaxConfig;
 use App\Models\UserRelated\UWorkExperience;
 use Exception;
 use Filament\Resources\Pages\CreateRecord;
@@ -51,9 +46,11 @@ class CreateUserManagement extends CreateRecord
                 'image' => $data['image'],
             ]);
             $u->save();
-            $u->assignRole($data['roles']);
+            $role = Role::whereIn('id', $data['roles'])->get();
+
+            $u->assignRole($role);
             $u->address()->create([
-                'idtype' => $data['idtype'] ?? '',
+                'idtype' => $data['idtype'] ?? 'ktp',
                 'idnumber' => $data['idnumber'],
                 'idexpired' => $data['idexpired'],
                 'ispermanent' => $data['ispermanent'],
@@ -76,7 +73,7 @@ class CreateUserManagement extends CreateRecord
                 'bpjs_kesehatan'=>$data['bpjs_kesehatan'],
                 'bpjs_kesehatan_family'=>$data['bpjs_kesehatan_family'],
                 'bpjs_kesehatan_date'=>$data['bpjs_kesehatan_date'],
-                'bpjs_kesehatan_cost'=>$data['bpjs_kesehatan_cost'],
+                'bpjs_kesehatan_cost'=>$data['bpjs_kesehatan_cost'] ?? 0,
                 'jht_cost'=>$data['jht_cost'],
                 'jaminan_pensiun_cost'=>$data['jaminan_pensiun_cost'],
                 'jaminan_pensiun_date'=>$data['jaminan_pensiun_date'],
@@ -84,29 +81,49 @@ class CreateUserManagement extends CreateRecord
             
             $emergency_contact = [];
             foreach ($data['emergency_contact'] as $k) {
-                $emergency_contact[] = new UEmergencyContact($k);
+                if(!empty($k['name']) || !is_null($k['name'])){
+                    $emergency_contact[] = new UEmergencyContact($k);
+                }
             }
             $family = [];
             foreach ($data['family'] as $k) {
-                $family[] = new UFamily($k);
+                if(!empty($k['fullname']) || !is_null($k['fullname'])){
+                    $family[] = new UFamily($k);
+                }
             }
             $formal_education = [];
             foreach ($data['formal_education'] as $k) {
-                $formal_education[] = new UFormalEducation($k);
+                if(!empty($k['grade_id']) || !is_null($k['grade_id'])){
+                    $formal_education[] = new UFormalEducation($k);
+                }
             }
             $informal_education = [];
             foreach ($data['informal_education'] as $k) {
-                $informal_education[] = new UInformalEducation($k);
+                if(!empty($k['name']) || !is_null($k['name'])){
+                    $informal_education[] = new UInformalEducation($k);
+                }
             }
             $work_experience = [];
             foreach ($data['work_experience'] as $k) {
-                $work_experience[] = new UWorkExperience($k);
+                if(!empty($k['company']) || !is_null($k['company'])){
+                    $work_experience[] = new UWorkExperience($k);
+                }
             }
-            $u->emergency_contact()->saveMany($emergency_contact);
-            $u->family()->saveMany($family);
-            $u->formal_education()->saveMany($formal_education);
-            $u->informal_education()->saveMany($informal_education);
-            $u->work_experience()->saveMany($work_experience);
+            if(count($formal_education) > 0){
+                $u->formal_education()->saveMany($formal_education);
+            }
+            if(count($emergency_contact) > 0){
+                $u->emergency_contact()->saveMany($emergency_contact);
+            }
+            if(count($family) > 0){
+                $u->family()->saveMany($family);
+            }
+            if(count($informal_education) > 0){
+                $u->informal_education()->saveMany($informal_education);
+            }
+            if(count($work_experience) > 0){
+                $u->work_experience()->saveMany($work_experience);
+            }
 
             $u->employe()->create([
                 'organization_id'=>$data['organization_id'],
@@ -122,8 +139,8 @@ class CreateUserManagement extends CreateRecord
             ]);
 
             $u->salary()->create([
-                'basic_salary'=>$data['basic_salary'],
-                'salary_type'=>$data['salary_type'],
+                'basic_salary'=>$data['basic_salary'] ?? 0,
+                'salary_type'=>$data['salary_type'] ?? 'Monthly',
                 'payment_schedule'=>$data['payment_schedule'],
                 'prorate_settings'=>$data['prorate_settings'],
                 'overtime_settings'=>$data['overtime_settings'],
@@ -139,13 +156,14 @@ class CreateUserManagement extends CreateRecord
                 'tax_method'=>$data['tax_method'],
                 'tax_salary'=>$data['tax_salary'],
                 'emp_tax_status'=>$data['emp_tax_status'],
-                'beginning_netto'=>$data['beginning_netto'],
-                'pph21_paid'=>$data['pph21_paid'],
+                'beginning_netto'=>$data['beginning_netto'] ?? 0,
+                'pph21_paid'=>$data['pph21_paid'] ?? 0,
             ]);
             
             DB::commit();
         } catch (Exception $e) {
             DB::rollback();
+            dd($e->getMessage());
             Notification::make()->title($e)->danger()->send();
         }
         return $u;

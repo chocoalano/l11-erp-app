@@ -68,8 +68,8 @@ class UserManagementResource extends Resource implements HasShieldPermissions
             Forms\Components\Split::make([
                 Forms\Components\Section::make('Personal Information Data')->schema([
                     Forms\Components\TextInput::make('name')->maxLength(100)->required(),
-                    Forms\Components\TextInput::make('nik')->maxLength(10)->numeric()->required(),
-                    Forms\Components\TextInput::make('email')->email()->maxLength(100)->required(),
+                    Forms\Components\TextInput::make('nik')->unique(table: User::class)->maxLength(10)->numeric()->required(),
+                    Forms\Components\TextInput::make('email')->unique(table: User::class)->email()->maxLength(100)->required(),
                     Forms\Components\Select::make('roles')
                     ->options(\Spatie\Permission\Models\Role::all()->pluck('name', 'id'))
                     ->multiple()
@@ -221,7 +221,7 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                     Forms\Components\Repeater::make('formal_education')->schema([
                         Forms\Components\Select::make('grade_id')->options(\App\Models\GradeEducation::all()->pluck('name', 'id'))->label('Grade')->preload()->createOptionForm([
                             Forms\Components\Section::make()->schema([
-                                Forms\Components\TextInput::make('name')->maxLength(100)->required()
+                                Forms\Components\TextInput::make('name')->maxLength(100)
                             ])->columns(['sm' => 1,'xl' => 1,'2xl' => 1])
                         ])->createOptionUsing(function (array $data): int {
                             $create = new \App\Models\GradeEducation();
