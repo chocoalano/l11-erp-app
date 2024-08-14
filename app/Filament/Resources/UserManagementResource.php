@@ -294,21 +294,22 @@ class UserManagementResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(function (Builder $query) {
-                $u = User::find(auth()->user()->id);
-                if ($u->hasRole(['super_admin', 'Administrator HR'])) {
-                    return $query;
-                }else{
-                    $usr = User::with('employe')->where('id', auth()->user()->id)->first();
-                    $org = Organization::with('employe')->where('id', $usr->employe->organization_id)->first();
-                    $userId = [];
-                    foreach ($org->employe as $k) {
-                        array_push($userId, $k->user_id);
-                    }
-                    return $query->whereIn('id', $userId); 
-                } 
-            })
-            ->headerActions([
+        ->modifyQueryUsing(function (Builder $query) {
+            $u = User::find(auth()->user()->id);
+            if ($u->hasRole(['super_admin', 'Administrator HR'])) {
+                return $query;
+            }else{
+                $usr = User::with('employe')->where('id', auth()->user()->id)->first();
+                $org = Organization::with('employe')->where('id', $usr->employe->organization_id)->first();
+                $userId = [];
+                foreach ($org->employe as $k) {
+                    array_push($userId, $k->user_id);
+                }
+                return $query->whereIn('id', $userId); 
+            } 
+        })
+        ->headerActions([
+            Tables\Actions\ActionGroup::make([
                 // START FOR BUTTON DOWNLOAD FORMATED IMPORT
                 Tables\Actions\Action::make('Download Excel For Import Data')
                     ->icon('fas-file-excel')
@@ -430,22 +431,49 @@ class UserManagementResource extends Resource implements HasShieldPermissions
                             $helper->validateUserExist($k);
                         }
                     }),
-            // END FOR BUTTON IMPORT
-            // START FOR BUTTON EXPORT DATA TO .XLSX
-            Tables\Actions\Action::make('Export To Excel')
-            ->icon('fas-file-export')
-            ->url(route('download.user.format.excel'))
-            ->openUrlInNewTab(),
-            // END FOR BUTTON EXPORT DATA TO .XLSX
+                // END FOR BUTTON IMPORT
+                // START FOR BUTTON EXPORT DATA TO .XLSX
+                Tables\Actions\Action::make('Export To Excel')
+                    ->outlined()
+                    ->icon('fas-file-export')
+                    ->url(route('download.user.format.excel'))
+                    ->openUrlInNewTab(),
+                // END FOR BUTTON EXPORT DATA TO .XLSX
+            ])
+            ->label('More actions')
+            ->icon('heroicon-m-ellipsis-vertical')
+            ->color('primary')
+            ->button()
         ])
         ->columns([
+            Tables\Columns\TextColumn::make('No.')->rowIndex(),
             Tables\Columns\ImageColumn::make('image')->circular(),
             Tables\Columns\TextColumn::make('nik')->searchable(),
             Tables\Columns\TextColumn::make('name')->searchable(),
             Tables\Columns\TextColumn::make('email')->searchable(),
-            Tables\Columns\TextColumn::make('email_verified_at')->dateTime()->sortable(),
-            Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
-            Tables\Columns\TextColumn::make('updated_at')->dateTime()->sortable(),
+            Tables\Columns\TextColumn::make('phone')->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('placebirth')->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('datebirth')->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('gender')
+                ->badge()
+                ->color(fn (string $state): string => match ($state) {
+                    'm' => 'success',
+                    'w' => 'danger',
+                })
+                ->formatStateUsing(fn (string $state): string => strtoupper($state === 'm' ? 'pria' : 'wanita'))
+                ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('employe.organization_id')
+                ->formatStateUsing(fn (string $state, \App\Models\Organization $organization): string => $organization::findOrFail($state)->name)
+                ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('blood')->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('marital_status')->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('religion')->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('email_verified_at')->dateTime()->sortable()
+            ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()
+            ->toggleable(isToggledHiddenByDefault: true),
+            Tables\Columns\TextColumn::make('updated_at')->dateTime()->sortable()
+            ->toggleable(isToggledHiddenByDefault: true),
         ])
         ->filters([
             Tables\Filters\TrashedFilter::make(),

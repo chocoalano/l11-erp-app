@@ -1,10 +1,6 @@
 <?php
 namespace App\Classes;
 
-use App\Models\Attendance;
-use App\Models\Branch;
-use App\Models\Company;
-use App\Models\GroupAttendance;
 use App\Models\JobLevel;
 use App\Models\JobPosition;
 use App\Models\Organization;
@@ -12,11 +8,6 @@ use App\Models\ScheduleGroupAttendance;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Log;
 
 class MyHelpers
 {
