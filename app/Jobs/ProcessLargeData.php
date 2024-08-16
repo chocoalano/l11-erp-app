@@ -21,7 +21,7 @@ class ProcessLargeData implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     
     protected $data;
-    public $tries = 3; // Set jumlah maksimal percobaan
+    public $tries = 10; // Set jumlah maksimal percobaan
     public $timeout = 0; // Set waktu timeout dalam detik
     
     /**
@@ -58,68 +58,70 @@ class ProcessLargeData implements ShouldQueue
 
             foreach ($chunk->toArray() as $k) {
                 $date = Carbon::parse($k['punch_time']);
-                $time = $date->format('H:i:s');
-                // $user = User::with('group_attendance')->where('nik', $k['emp_code'])->first();
+                $formattedDate = $date->format('Y-m-d');
+                $formattedTime = $date->format('H:i:s');
+
+                // Ambil user dan group attendance sekaligus
                 $result = DB::table('users as u')
                     ->join('group_users as gu', 'u.id', '=', 'gu.user_id')
                     ->join('group_attendances as ga', 'gu.group_attendance_id', '=', 'ga.id')
                     ->where('u.nik', $k['emp_code'])
                     ->select('u.id as user_id', 'ga.id as group_id')
                     ->first();
-                // Validate user existence and group_attendance relationship
-                // if(is_null($result->user_id) || is_null($result->group_id)){
-                //     dd($k['emp_code']);
-                //     Log::error('Job failed', ['exception user errors nik' => $k['emp_code']]);
-                // }
+
                 if (is_null($result)) {
-                    dd($k['emp_code']);
-                    Log::error('User object is null', $k['emp_code']);
-                } elseif (is_null($result->user_id)) {
-                    Log::error('User ID is null for user object:', ['user' => $result]);
-                } else {
-                    $cekJadwal = ScheduleGroupAttendance::where([
-                        'group_attendance_id' => $result->group_id,
-                        'user_id' => $result->user_id,
-                        'date' => $date->format('Y-m-d')
-                    ])->first();
-
-                    if ($cekJadwal) {
-                        $status = $helper->cekStatusTelatAbsen($date->format('Y-m-d'), $cekJadwal['group_attendance_id'], $time, (int)$k['punch_state'] < 1 ? 'in' : 'out')['status'];
-                        
-                        $data = [
-                            'nik' => $k['emp_code'],
-                            'schedule_group_attendances_id' => (int)$cekJadwal['id'],
-                            'date' => $date->format('Y-m-d'),
-                        ];
-
-                        if ((int)$k['punch_state'] < 1) {
-                            $data = array_merge($data, [
-                                'lat_in' => (double)'-6.1749639',
-                                'lng_in' => (double)'106.598571,15',
-                                'time_in' => $time,
-                                'status_in' => $status
-                            ]);
-                        } else {
-                            $data = array_merge($data, [
-                                'lat_out' => (double)'-6.1749639',
-                                'lng_out' => (double)'106.598571,15',
-                                'time_out' => $time,
-                                'status_out' => $status
-                            ]);
-                        }
-
-                        Attendance::updateOrCreate(
-                            [
-                                'nik' => $k['emp_code'],
-                                'date' => $date->format('Y-m-d'),
-                                'schedule_group_attendances_id' => (int)$cekJadwal['id']
-                            ],
-                            $data
-                        );
-                    }
+                    dd($k['emp_code']. ' Gak ada user/User gapunya group');
+                    Log::error('User object is null', ['emp_code' => $k['emp_code']]);
                     continue;
                 }
-                continue;
+
+                // Cek jadwal berdasarkan group attendance dan user_id
+                $cekJadwal = ScheduleGroupAttendance::where([
+                    'group_attendance_id' => $result->group_id,
+                    'user_id' => $result->user_id,
+                    'date' => $formattedDate
+                ])->first();
+
+                if (!$cekJadwal) {
+                    dd($k['emp_code']. ' user gapunya jadwal');
+                    Log::error('User does not have a schedule', ['emp_code' => $k['emp_code'], 'date' => $formattedDate]);
+                    continue;
+                }
+
+                $status = $helper->cekStatusTelatAbsen($formattedDate, $cekJadwal['group_attendance_id'], $formattedTime, (int)$k['punch_state'] < 1 ? 'in' : 'out')['status'];
+
+                $data = [
+                    'nik' => $k['emp_code'],
+                    'schedule_group_attendances_id' => $cekJadwal->id,
+                    'date' => $formattedDate,
+                ];
+
+                // Tentukan input berdasarkan punch_state
+                if ((int)$k['punch_state'] < 1) {
+                    $data = array_merge($data, [
+                        'lat_in' => (double)'-6.1749639',
+                        'lng_in' => (double)'106.598571',
+                        'time_in' => $formattedTime,
+                        'status_in' => $status
+                    ]);
+                } else {
+                    $data = array_merge($data, [
+                        'lat_out' => (double)'-6.1749639',
+                        'lng_out' => (double)'106.598571',
+                        'time_out' => $formattedTime,
+                        'status_out' => $status
+                    ]);
+                }
+
+                // Gunakan updateOrCreate untuk menyimpan data ke tabel Attendance
+                Attendance::updateOrCreate(
+                    [
+                        'nik' => $k['emp_code'],
+                        'date' => $formattedDate,
+                        'schedule_group_attendances_id' => $cekJadwal->id,
+                    ],
+                    $data
+                );
             }
         });
     }
