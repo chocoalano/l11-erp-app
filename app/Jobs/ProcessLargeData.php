@@ -65,10 +65,18 @@ class ProcessLargeData implements ShouldQueue
                     ->join('group_attendances as ga', 'gu.group_attendance_id', '=', 'ga.id')
                     ->where('u.nik', $k['emp_code'])
                     ->select('u.id as user_id', 'ga.id as group_id')
-                    ->get();
-
+                    ->first();
                 // Validate user existence and group_attendance relationship
-                if ($result->user_id && $result->group_id) {
+                // if(is_null($result->user_id) || is_null($result->group_id)){
+                //     dd($k['emp_code']);
+                //     Log::error('Job failed', ['exception user errors nik' => $k['emp_code']]);
+                // }
+                if (is_null($result)) {
+                    dd($k['emp_code']);
+                    Log::error('User object is null', $k['emp_code']);
+                } elseif (is_null($result->user_id)) {
+                    Log::error('User ID is null for user object:', ['user' => $result]);
+                } else {
                     $cekJadwal = ScheduleGroupAttendance::where([
                         'group_attendance_id' => $result->group_id,
                         'user_id' => $result->user_id,
