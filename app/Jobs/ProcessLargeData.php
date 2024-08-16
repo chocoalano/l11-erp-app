@@ -12,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -58,13 +59,19 @@ class ProcessLargeData implements ShouldQueue
             foreach ($chunk->toArray() as $k) {
                 $date = Carbon::parse($k['punch_time']);
                 $time = $date->format('H:i:s');
-                $user = User::with('group_attendance')->where('nik', $k['emp_code'])->first();
+                // $user = User::with('group_attendance')->where('nik', $k['emp_code'])->first();
+                $result = DB::table('users as u')
+                    ->join('group_users as gu', 'u.id', '=', 'gu.user_id')
+                    ->join('group_attendances as ga', 'gu.group_attendance_id', '=', 'ga.id')
+                    ->where('u.nik', $k['emp_code'])
+                    ->select('u.id as user_id', 'ga.id as group_id')
+                    ->get();
 
                 // Validate user existence and group_attendance relationship
-                if ($user && $user->group_attendance) {
+                if ($result->user_id && $result->group_id) {
                     $cekJadwal = ScheduleGroupAttendance::where([
-                        'group_attendance_id' => $user->group_attendance[0]->id,
-                        'user_id' => $user->id,
+                        'group_attendance_id' => $result->group_id,
+                        'user_id' => $result->user_id,
                         'date' => $date->format('Y-m-d')
                     ])->first();
 
