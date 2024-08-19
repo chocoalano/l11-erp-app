@@ -94,10 +94,10 @@ class ManageScheduleGroupAttendances extends ManageRecords
                                 ->where('ga.id', (int) $k['group'])
                                 ->select('u.id as user_id')
                                 ->get();
-                                foreach ($u as $user) {
-                                    $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $user->user_id, null);
-                                    $insert_data[] = $hasilPergantian;
-                                }
+                            foreach ($u as $user) {
+                                $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $user->user_id, null);
+                                $insert_data[] = $hasilPergantian;
+                            }
                         }
                         $mergedArray = array_merge(...$insert_data);
                         return \App\Jobs\ProcessLargeDataSchedule::dispatch($mergedArray);
@@ -151,10 +151,10 @@ class ManageScheduleGroupAttendances extends ManageRecords
                                 ->where('ga.id', (int) $k['group'])
                                 ->select('u.id as user_id')
                                 ->get();
-                                foreach ($u as $user) {
-                                    $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $user->user_id, $k['day_off']);
-                                    $insert_data[] = $hasilPergantian;
-                                }
+                            foreach ($u as $user) {
+                                $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $user->user_id, $k['day_off']);
+                                $insert_data[] = $hasilPergantian;
+                            }
                         }
                         $mergedArray = array_merge(...$insert_data);
                         return \App\Jobs\ProcessLargeDataSchedule::dispatch($mergedArray);
@@ -204,10 +204,10 @@ class ManageScheduleGroupAttendances extends ManageRecords
                                 ->where('ga.id', (int) $k['group'])
                                 ->select('u.id as user_id')
                                 ->get();
-                                foreach ($u as $user) {
-                                    $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $user->user_id, null);
-                                    $insert_data[] = $hasilPergantian;
-                                }
+                            foreach ($u as $user) {
+                                $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $user->user_id, null);
+                                $insert_data[] = $hasilPergantian;
+                            }
                         }
                         $mergedArray = array_merge(...$insert_data);
                         return \App\Jobs\ProcessLargeDataSchedule::dispatch($mergedArray);
@@ -257,19 +257,78 @@ class ManageScheduleGroupAttendances extends ManageRecords
                                 ->where('ga.id', (int) $k['group'])
                                 ->select('u.id as user_id')
                                 ->get();
-                                foreach ($u as $user) {
-                                    $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $user->user_id, null);
-                                    $insert_data[] = $hasilPergantian;
+                            foreach ($u as $user) {
+                                $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], (int) $k['group'], $k['config'], $user->user_id, null);
+                                $insert_data[] = $hasilPergantian;
+                            }
+                        }
+                        $mergedArray = array_merge(...$insert_data);
+                        return \App\Jobs\ProcessLargeDataSchedule::dispatch($mergedArray);
+                    }),
+                Actions\Action::make('users_custom_reschedule')
+                    ->color('info')
+                    ->outlined()
+                    ->form([
+                        Section::make('Range Date Setup')
+                            ->schema([
+                                DatePicker::make('start')->required(),
+                                DatePicker::make('end')->required(),
+                            ])->columns(2),
+                        Repeater::make('group_setup')
+                            ->schema([
+                                Select::make('user_id')
+                                    ->label('Select users')
+                                    ->options(User::get()->pluck('name', 'id'))
+                                    ->multiple()
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+                                Select::make('time')
+                                    ->label('Select time shift')
+                                    ->options(TimeAttendance::get()->pluck('type', 'id'))
+                                    ->required(),
+                                Select::make('config')
+                                    ->options([
+                                        'continue' => 'Continue',
+                                        'rolling' => 'Rolling',
+                                    ])
+                                    ->required(),
+                            ])
+                            ->columns(3)
+                    ])
+                    ->action(function (array $data) {
+                        $startDate = new DateTime($data['start']);
+                        $endDate = new DateTime($data['end']);
+                        $interval = new DateInterval('P1D');
+                        $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+                        $dates = [];
+                        foreach ($period as $date) {
+                            $dates[] = $date->format('Y-m-d');
+                        }
+                        $insert_data = [];
+                        foreach ($data['group_setup'] as $k) {
+                            foreach ($k['user_id'] as $userId) {
+                                $u = DB::table('group_attendances as ga')
+                                    ->join('group_users as gu', 'ga.id', '=', 'gu.group_attendance_id')
+                                    ->join('users as u', 'gu.user_id', '=', 'u.id')
+                                    ->where('u.id', $userId)
+                                    ->select('u.id as user_id', 'ga.id as group_id')
+                                    ->first();
+                                if (is_null($u)) {
+                                    continue;
                                 }
+                                $hasilPergantian = $this->gantiShiftIdPadaSenin($dates, (int) $k['time'], $u->group_id, $k['config'], $userId, null);
+                                $insert_data[] = $hasilPergantian;
+                            }
                         }
                         $mergedArray = array_merge(...$insert_data);
                         return \App\Jobs\ProcessLargeDataSchedule::dispatch($mergedArray);
                     }),
             ])
-            ->label('More create schedule actions')
-            ->icon('heroicon-c-plus-circle')
-            ->color('primary')
-            ->button(),
+                ->label('More create schedule actions')
+                ->icon('heroicon-c-plus-circle')
+                ->color('primary')
+                ->button(),
             Actions\Action::make('import')
                 ->label('Import From Biotime Attendance')
                 ->icon('fas-file-excel')
@@ -294,25 +353,26 @@ class ManageScheduleGroupAttendances extends ManageRecords
                     $originalArray = array_slice($sheet, 2);
                     $array = $originalArray;
                     $cek = ProcessImportScheduleFromBiotime::dispatch($array);
-                    if($cek){
+                    if ($cek) {
                         Notification::make()
-                        ->title('Saved successfully')
-                        ->success()
-                        ->send();
-                    }else{
+                            ->title('Saved successfully')
+                            ->success()
+                            ->send();
+                    } else {
                         Notification::make()
-                        ->title('Error unsuccessfully')
-                        ->success()
-                        ->send();
+                            ->title('Error unsuccessfully')
+                            ->success()
+                            ->send();
                     }
                 })
         ];
     }
 
-    function transformData($data) {
+    function transformData($data)
+    {
         $header = $data[0];
         $result = [];
-    
+
         for ($i = 1; $i < count($data); $i++) {
             $employeeData = $data[$i];
             $employee = [
@@ -321,19 +381,20 @@ class ManageScheduleGroupAttendances extends ManageRecords
                 'tanggal' => [],
                 'jadwal' => [],
             ];
-    
+
             for ($j = 3; $j < count($employeeData); $j++) { // Assuming data starts from index 3
                 $employee['tanggal'][] = $header[$j];
                 $employee['jadwal'][] = $employeeData[$j];
             }
-    
+
             $result[] = $employee;
         }
-    
+
         return $result;
     }
 
-    public function gantiShiftIdPadaSenin($tanggalArray, int $currentShift, int $groupId, $config, $user_id, $dayoff) {
+    public function gantiShiftIdPadaSenin($tanggalArray, int $currentShift, int $groupId, $config, $user_id, $dayoff)
+    {
         $hasil = [];
         $currentShiftId = $currentShift;
         if ($config === 'rolling' && !is_null($dayoff)) {
@@ -365,7 +426,7 @@ class ManageScheduleGroupAttendances extends ManageRecords
                     $fixedDayOff = Carbon::MONDAY;
                     break;
             }
-            $filteredArray = array_filter($tanggalArray, function($date) use ($fixedDayOff){
+            $filteredArray = array_filter($tanggalArray, function ($date) use ($fixedDayOff) {
                 return Carbon::parse($date)->dayOfWeek !== $fixedDayOff;
             });
             $filteredArray = array_values($filteredArray);
@@ -377,15 +438,15 @@ class ManageScheduleGroupAttendances extends ManageRecords
                         ->orderByDesc('rules')
                         ->get();
                     foreach ($findTime as $k) {
-                        if($k['rules'] === 1){
+                        if ($k['rules'] === 1) {
                             $shift1 = $k['id'];
-                        }elseif($k['rules'] === 2){
+                        } elseif ($k['rules'] === 2) {
                             $shift2 = $k['id'];
                         }
                     }
-                    if($currentShift === $shift1){
+                    if ($currentShift === $shift1) {
                         $lawanShift = $shift2;
-                    }elseif($currentShift === $shift2){
+                    } elseif ($currentShift === $shift2) {
                         $lawanShift = $shift1;
                     }
                     $currentShiftId = ($currentShiftId === $currentShift) ? $lawanShift : $currentShift;
@@ -397,10 +458,10 @@ class ManageScheduleGroupAttendances extends ManageRecords
                     'group_attendance_id' => $groupId
                 ];
             }
-        }elseif ($config === 'rolling' && is_null($dayoff)) {
+        } elseif ($config === 'rolling' && is_null($dayoff)) {
             $currentWeek = null;
             $cekGroup = GroupAttendance::find($groupId);
-            $filteredDates = array_filter($tanggalArray, function($date) {
+            $filteredDates = array_filter($tanggalArray, function ($date) {
                 $dayOfWeek = date('N', strtotime($date));
                 return $dayOfWeek < 7; // 6 is Saturday, 7 is Sunday
             });
@@ -412,15 +473,15 @@ class ManageScheduleGroupAttendances extends ManageRecords
                         ->orderByDesc('rules')
                         ->get();
                     foreach ($findTime as $k) {
-                        if($k['rules'] === 1){
+                        if ($k['rules'] === 1) {
                             $shift1 = $k['id'];
-                        }elseif($k['rules'] === 2){
+                        } elseif ($k['rules'] === 2) {
                             $shift2 = $k['id'];
                         }
                     }
-                    if($currentShift === $shift1){
+                    if ($currentShift === $shift1) {
                         $lawanShift = $shift2;
-                    }elseif($currentShift === $shift2){
+                    } elseif ($currentShift === $shift2) {
                         $lawanShift = $shift1;
                     }
                     $currentShiftId = ($currentShiftId === $currentShift) ? $lawanShift : $currentShift;
@@ -432,11 +493,11 @@ class ManageScheduleGroupAttendances extends ManageRecords
                     'group_attendance_id' => $groupId
                 ];
             }
-        }else{
+        } else {
             $group = GroupAttendance::find($groupId);
             $shift = TimeAttendance::find($currentShift);
-            if($shift->type === 'Office' && $group->name === 'GROUP NON SHIFT'){ //office staff
-                $filteredDates = array_filter($tanggalArray, function($date) {
+            if ($shift->type === 'Office' && $group->name === 'GROUP NON SHIFT') { //office staff
+                $filteredDates = array_filter($tanggalArray, function ($date) {
                     $dayOfWeek = date('N', strtotime($date));
                     return $dayOfWeek < 6; // 6 is Saturday, 7 is Sunday
                 });
@@ -448,8 +509,8 @@ class ManageScheduleGroupAttendances extends ManageRecords
                         'group_attendance_id' => $groupId
                     ];
                 }
-            }elseif($shift->type === 'Adm' && $group->name === 'GROUP NON SHIFT ADM'){ //office nonstaff (adm)
-                $filteredDates = array_filter($tanggalArray, function($date) {
+            } elseif ($shift->type === 'Adm' && $group->name === 'GROUP NON SHIFT ADM') { //office nonstaff (adm)
+                $filteredDates = array_filter($tanggalArray, function ($date) {
                     $dayOfWeek = date('N', strtotime($date));
                     return $dayOfWeek < 7; // 6 is Saturday, 7 is Sunday
                 });
@@ -461,7 +522,7 @@ class ManageScheduleGroupAttendances extends ManageRecords
                         'group_attendance_id' => $groupId
                     ];
                 }
-            }else{
+            } else {
                 Notification::make()
                     ->title('Saved unsuccessfully')
                     ->icon('heroicon-s-x-circle')
