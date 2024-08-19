@@ -35,7 +35,7 @@ class CalendarEventWidgets extends CalendarWidget
     protected bool $eventClickEnabled = true;
     public function getDateClickContextMenuActions(): array
     {
-        $authUser = User::with('employe')->where('id', auth()->id)->first();
+        $authUser = User::with('employe')->where('id', auth()->user()->id)->first();
         return [
             CreateAction::make('cuti')
                 ->label('Create Form Cuti')
